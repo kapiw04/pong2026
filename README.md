@@ -1,89 +1,74 @@
 # Projekt 1. Pong - przeciwnik uczący się grać
 
-Zespół 1, poniedziałek 8:00-10:15. Wersja 1.1.2.
-Przedmiot: Sztuczna inteligencja w grach i rozszerzonej rzeczywistości.
+Zespół 1, poniedziałek 8:00-10:15. Przedmiot: Sztuczna inteligencja w grach
+i rozszerzonej rzeczywistości.
 
-Gra Pong z przeciwnikiem uczonym przez Q-learning. Agent steruje prawą
-paletką. Trening działa bez grafiki, a gotowy model jest dołączony do projektu.
-
-## Zespół
+Gra Pong z przeciwnikiem uczącym się metodą tablicowego Q-learningu.
+Porównujemy wpływ rozmiaru siatki i współczynnika uczenia na wynik gry.
 
 | Osoba | Zakres |
 | --- | --- |
 | Artur Zamorowski | Budowa i trenowanie modelu |
-| Kacper Wojtowicz | Silnik gry, interfejs graficzny i przygotowanie prezentacji |
-| Rafał Wybraniec | Sprawozdanie, dokumentacja i dostosowywanie parametrów |
+| Kacper Wojtowicz | Gra, interfejs i prezentacja |
+| Rafał Wybraniec | Sprawozdanie, dokumentacja i dobór parametrów |
 
 ## Uruchomienie
 
-Wymagany Python 3.11 lub nowszy. Wersje bibliotek są przypięte
-w `uruchomienie/wymagania.txt`: NumPy 2.3.5, Pygame-ce 2.5.8 i PyYAML 6.0.3.
-
-macOS / Linux:
+Python 3.11 lub nowszy. Biblioteki: NumPy 2.3.5, Pygame-ce 2.5.8, PyYAML 6.0.3.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r uruchomienie/wymagania.txt
-python kod/main.py
+python kod/main.py play
 ```
 
-Windows PowerShell:
+Na Windows użyj `py -3 -m venv .venv`, a następnie interpretera
+`.venv\Scripts\python.exe` w poleceniach instalacji i uruchomienia.
 
-```powershell
-py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r uruchomienie/wymagania.txt
-.venv\Scripts\python.exe kod\main.py
-```
+Enter rozpoczyna mecz do 7 punktów. W/S lub strzałki sterują lewą paletką,
+Spacja włącza pauzę, D przełącza pokaz, R rozpoczyna nowy mecz,
+H pokazuje sterowanie, Esc wraca do menu. Wymiana trwa do zdobycia punktu.
 
-Enter rozpoczyna grę. W/S lub strzałki sterują paletką, Spacja włącza pauzę,
-H pokazuje sterowanie, Esc wraca do menu. Mecz trwa do 7 punktów.
-Wymiany w grze trwają do zdobycia punktu.
-
-## Konfiguracja
-
-Wszystkie ustawienia są w `konfiguracja.yaml`. Program uruchamia się bez
-argumentów. Ścieżki w YAML są liczone względem katalogu projektu.
-
-| `mode` | Działanie |
-| --- | --- |
-| `play` | Gra z modelem wskazanym w `play.model`; `play.demo: true` włącza pokaz |
-| `train` | Trening według sekcji `train`, domyślnie 20 000 epizodów |
-| `evaluate` | Ocena modelu, domyślnie 450 punktów |
-| `experiment` | Pełne porównanie z protokołu `dane/eksperyment.yaml` |
-
-Po treningu własnego modelu ustaw `mode: play` i `play.model: modele/wlasny.npz`.
-Wyniki ponownej oceny i eksperymentów trafiają domyślnie do osobnych katalogów.
-Limit 20 s na punkt dotyczy tylko treningu i oceny.
-
-## Zawartość
-
-| Katalog lub plik | Zawartość |
-| --- | --- |
-| `kod/pong/` | Gra, fizyka, Q-learning i odczyt ustawień |
-| `dane/` | Protokół eksperymentów i opis scenariuszy |
-| `modele/` | Gotowe tablice Q i przebiegi treningu CSV |
-| `wyniki/` | Pomiary, podsumowania, wykresy i zrzuty gry |
-| `uruchomienie/` | Instrukcja PDF i wymagania |
-| `dokumentacja/` | Teksty dokumentów |
-| `narzedzia/` | Generowanie wykresów i PDF-ów |
-| `sprawozdanie.pdf` | Opis rozwiązania i wyniki, 8 stron |
-| `prezentacja.pdf` | Slajdy do prezentacji |
-
-Pygame-ce/SDL obsługuje okno, klawiaturę i rysowanie. Fizyka projektu obejmuje
-przyspieszanie paletek, odbicie zależne od miejsca trafienia i ruchu paletki,
-rotację piłki oraz wzrost jej szybkości po odbiciu.
-
-## Wyniki i dokumentacja
-
-Pełny eksperyment obejmuje 10 treningów po 20 000 punktów. Porównuje nagrody,
-rozmiary siatki i współczynnik uczenia. Parametry oraz ziarna są zapisane
-w `dane/eksperyment.yaml`, a pomiary w `wyniki/`. Gra działa z dołączonym
-modelem `modele/pong_q.npz`, bez ponownego uczenia.
+## Trzy tryby
 
 ```bash
-python -m pip install -r uruchomienie/wymagania_dev.txt
-python narzedzia/wykresy.py
-python narzedzia/dokumenty.py
+python kod/main.py play
+python kod/main.py train
+python kod/main.py evaluate
 ```
 
+Parametry są w `konfiguracja.yaml`. Pole `model` wybiera model do gry,
+`demo: true` włącza pokaz reguła kontra agent. `train` uczy wszystkie modele
+z listy `models` i zapisuje ich ocenę. `evaluate` ocenia zapisane modele.
+Ścieżki odnoszą się do katalogu projektu.
+
+Modele porównują siatki 50 i 100 px oraz współczynniki uczenia 0,12 i 0,35.
+Stan zawiera pozycję piłki i paletki, kierunek poziomy oraz kategorie prędkości
+pionowej piłki i paletki. Nagroda wynosi +1 za punkt, -1 za stratę i +0,2 za odbicie.
+Trening i ocena mają limit 20 s na punkt. Paletki obu stron podejmują decyzję co 1/30 s.
+
+## Pliki
+
+- `kod/`: uruchamianie, fizyka, agent i interfejs.
+- `modele/`: cztery gotowe tablice Q.
+- `wyniki/uczenie.csv`: ocena modeli w trakcie treningu.
+- `wyniki/ocena.csv`: wyniki końcowych punktów przeciw regule śledzącej piłkę.
+- `wyniki/*.png`: wykresy i zrzut użyte w sprawozdaniu.
+- `dokumentacja/`: źródła LaTeX sprawozdania i prezentacji.
+- `sprawozdanie.pdf`, `prezentacja.pdf`, `uruchomienie/`: materiały do oddania.
+
+Pygame-ce obsługuje okno i klawiaturę. Własna fizyka obejmuje przyspieszanie
+paletek, zmianę kąta odbicia, przekazywanie ruchu paletki i rotację piłki.
+
+Oba dokumenty można skompilować z katalogu `dokumentacja/`:
+
+```bash
+latexmk -pdf -outdir=../tmp/latex sprawozdanie.tex
+latexmk -pdf -outdir=../tmp/latex prezentacja.tex
+```
+
+Kompilacja wymaga TeX Live lub MiKTeX z `latexmk` i `pdflatex`.
+Pliki PDF powstają w `tmp/latex/`.
+Archiwum do oddania: `dist/projekt_1_pon_8.zip`.
+Repozytorium: https://github.com/kapiw04/pong2026.

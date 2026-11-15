@@ -3,12 +3,11 @@ from dataclasses import replace
 from enum import Enum
 import math
 import os
-from pathlib import Path
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 import pygame
 pygame.mixer.pre_init(frequency=0, size=0, channels=0, buffer=0)
-from .agents import QAgent, RandomAgent, Tracker
+from .agents import QAgent, Tracker
 from .physics import Pong
 
 
@@ -40,13 +39,8 @@ class Game:
         self.agent = QAgent.load(model_path)
         self.env = Pong(replace(self.agent.cfg, max_steps=0), seed)
         self.tracker = Tracker()
-        self.right_tracker = Tracker(side="right")
-        self.random = RandomAgent(seed)
-        self.untrained = QAgent()
         self.demo = demo
         self.scene = Scene.PLAY if demo else Scene.MENU
-        self.policies = ["Q-learning", "Reguła", "Losowy", "Bez uczenia"]
-        self.policy_index = 0
         self.score = [0, 0]
         self.trail = deque(maxlen=22)
         self.accumulator = 0.0
@@ -96,9 +90,6 @@ class Game:
                     self.scene = Scene.PAUSE
                 elif self.scene == Scene.PAUSE:
                     self.scene = Scene.PLAY
-            elif key == pygame.K_TAB:
-                self.policy_index = (self.policy_index + 1) % len(self.policies)
-                self.new_match()
             elif key == pygame.K_h:
                 self.help = not self.help
         return True
@@ -118,14 +109,7 @@ class Game:
             else:
                 left = int(keys[pygame.K_s] or keys[pygame.K_DOWN]) - int(keys[pygame.K_w] or keys[pygame.K_UP])
             obs = self.env.observe()
-            if self.policy_index == 0:
-                action = self.agent.action(obs)
-            elif self.policy_index == 1:
-                action = self.right_tracker.action(self.env)
-            elif self.policy_index == 2:
-                action = self.random.action(obs)
-            else:
-                action = self.untrained.action(obs)
+            action = self.agent.action(obs)
             result = self.env.step(action, left)
             self.trail.append((self.env.ball.x, self.env.ball.y))
             if result.done:
@@ -144,7 +128,7 @@ class Game:
         s = self.canvas
         s.fill(BG)
         self.text("Reguła" if self.demo else "Gracz", OX, 45, 22, CORAL)
-        self.text(self.policies[self.policy_index], W - OX - 160, 45, 22, TEAL)
+        self.text(f"Q / {self.agent.cell} px", W - OX - 160, 45, 22, TEAL)
         self.text(f"{self.score[0]}    :    {self.score[1]}", W / 2, 27, 40, center=True)
         pygame.draw.rect(s, FIELD, (OX, OY, 900, 500), border_radius=4)
         pygame.draw.rect(s, LINE, (OX, OY, 900, 500), 1, border_radius=4)
@@ -173,7 +157,7 @@ class Game:
                 self.text("Sterowanie", W / 2, OY + 55, 40, center=True)
                 self.text("W / S lub strzałki   ruch", W / 2, OY + 145, 22, center=True)
                 self.text("Spacja   pauza", W / 2, OY + 190, 22, center=True)
-                self.text("Tab   przeciwnik       D   demo", W / 2, OY + 235, 22, center=True)
+                self.text("D   demo", W / 2, OY + 235, 22, center=True)
                 self.text("R   nowy mecz       Esc   menu", W / 2, OY + 280, 22, center=True)
                 self.text("H   wróć", W / 2, OY + 385, 18, TEAL, True)
             elif self.scene == Scene.MENU:
@@ -185,7 +169,7 @@ class Game:
                 self.text("Pauza", W / 2, OY + 150, 64, center=True)
                 self.text("Spacja   wznów", W / 2, OY + 255, 22, TEAL, True)
             else:
-                winner = self.policies[self.policy_index] if self.score[1] >= 7 else "Reguła" if self.demo else "Gracz"
+                winner = f"Q / {self.agent.cell} px" if self.score[1] >= 7 else "Reguła" if self.demo else "Gracz"
                 self.text(f"Wygrywa: {winner}", W / 2, OY + 150, 40, TEAL, True)
                 self.text("Enter   nowy mecz", W / 2, OY + 250, 22, center=True)
         size = self.window.get_size()
@@ -197,20 +181,12 @@ class Game:
         pygame.display.flip()
 
 
-def run(model_path, demo=False, seed=2026, frames=None, screenshot=None):
+def run(model_path, demo=False, seed=2026):
     game = Game(model_path, demo, seed)
     clock = pygame.time.Clock()
-    count = 0
     try:
         while game.events():
-            dt = 1 / 60 if frames else clock.tick(60) / 1000
-            game.update(dt)
+            game.update(clock.tick(60) / 1000)
             game.draw()
-            count += 1
-            if frames and count >= frames:
-                break
-        if screenshot:
-            Path(screenshot).parent.mkdir(parents=True, exist_ok=True)
-            pygame.image.save(game.canvas, screenshot)
     finally:
         pygame.quit()

@@ -1,35 +1,25 @@
-mode: play
-
-play:
-  model: modele/grid50_seed_7.npz
-  demo: false
-  seed: 2026
-  frames: null
-  screenshot: null
-
-train:
-  episodes: 20000
-  seed: 7
-  output: modele/wlasny.npz
-  checkpoints: [1000, 5000, 10000, 20000]
-  validation_points: 180
-  shaping: true
-  agent:
-    alpha: 0.12
-    gamma: 0.98
-    movement_cost: 0.001
-    distance_cost: 0.02
-
+model: modele/grid50_a012.npz
+demo: false
+seed: 7
+episodes: 50000
+gamma: 0.98
+epsilon: [0.9, 0.05]
+checkpoints: [0, 1000, 5000, 10000, 20000, 50000]
+validation_points: 180
+validation_seed: 1000000
+test_points: 450
+test_seed: 2000000
+workers: 2
+models:
+  - name: grid50_a012
     cell: 50
-
-evaluate:
-  model: modele/grid50_seed_7.npz
-  policy: q
-  points: 450
-  seed_base: 2000000
-  output: wyniki_odtworzone/evaluation.csv
-
-experiment:
-  protocol: dane/eksperyment.yaml
-  output: wyniki_odtworzone
-  models: modele_odtworzone
+    alpha: 0.12
+  - name: grid50_a035
+    cell: 50
+    alpha: 0.35
+  - name: grid100_a012
+    cell: 100
+    alpha: 0.12
+  - name: grid100_a035
+    cell: 100
+    alpha: 0.35
