@@ -1,0 +1,42 @@
+episodes: 20000
+training_seeds:
+- 7
+- 19
+- 41
+workers: 3
+variants:
+- name: q
+  shaping: true
+- name: q_no_shaping
+  shaping: false
+- name: grid50
+  seeds:
+  - 7
+  options:
+    encoder: grid
+    cell: 50
+- name: grid100
+  seeds:
+  - 7
+  options:
+    encoder: grid
+    cell: 100
+- name: alpha035
+  seeds:
+  - 7
+  options:
+    alpha: 0.35
+- name: no_movement_cost
+  seeds:
+  - 7
+  options:
+    movement_cost: 0.0
+checkpoints:
+- 1000
+- 5000
+- 10000
+- 20000
+validation_points: 180
+test_points: 450
+test_seed_base: 2000000
+demo_seed: 7

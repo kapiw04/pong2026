@@ -1,8 +1,3 @@
-"""Deterministic simulation independent of SDL and rendering.
-
-One episode is one point. A time limit is a truncation, never a scored point.
-Ball/paddle collisions use a swept crossing of the paddle face.
-"""
 from dataclasses import dataclass
 import math
 import random
@@ -33,7 +28,7 @@ class Transition:
     reward: float
     terminated: bool
     truncated: bool
-    winner: int  # +1: right agent, -1: left opponent, 0: no point
+    winner: int
     agent_hits: int
 
     @property
@@ -64,7 +59,6 @@ class Pong:
         return self.observe()
 
     def observe(self):
-        """Only ball motion and the agent's own paddle, no opponent position."""
         b, p = self.ball, self.right
         return b.x, b.y, b.vx, b.vy, p.y, p.vy, b.spin
 
@@ -92,7 +86,7 @@ class Pong:
             b.vx = direction * math.sqrt(speed * speed - vy * vy)
             b.spin = clip(c.spin_transfer * paddle.vy / c.paddle_speed + 2 * offset, -7, 7)
         else:
-            # Baseline physics preserves vertical velocity and has no spin.
+
             b.vx = direction * abs(b.vx) * c.hit_acceleration
             factor = min(1.0, c.max_ball_speed / math.hypot(b.vx, b.vy))
             b.vx *= factor
@@ -124,7 +118,7 @@ class Pong:
                 b.spin *= math.exp(-c.spin_decay * c.dt)
             b.x += b.vx * c.dt
             b.y += b.vy * c.dt
-            # Reflect the overshoot instead of pinning the ball to the wall.
+
             if b.y < c.ball_radius:
                 b.y = 2 * c.ball_radius - b.y
                 b.vy = abs(b.vy)
@@ -145,7 +139,7 @@ class Pong:
                 impact_y = old_y + fraction * (b.y - old_y)
                 paddle_y = old_p + fraction * (paddle.y - old_p)
                 if abs(impact_y - paddle_y) <= c.paddle_height / 2 + c.ball_radius:
-                    # Collision model: vertical paddle face with radius-expanded span.
+
                     b.x = face + direction * abs(b.x - face)
                     self._bounce(paddle, impact_y, direction)
             self.elapsed += c.dt

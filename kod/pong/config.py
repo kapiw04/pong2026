@@ -1,4 +1,3 @@
-"""Physical constants. Distances are pixels, time is seconds."""
 from dataclasses import asdict, dataclass
 
 

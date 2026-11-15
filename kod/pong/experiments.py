@@ -1,4 +1,3 @@
-"""Reproducible training and evaluation. All published numbers come from CSVs."""
 import csv
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import replace
@@ -13,6 +12,7 @@ import numpy as np
 from .agents import QAgent, RandomAgent, Tracker
 from .config import Config
 from .physics import Pong
+from .settings import read_yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -30,7 +30,6 @@ def write_csv(path, rows):
 
 
 def wilson(wins, total):
-    """95% Wilson interval for a descriptive proportion of independent points."""
     if not total:
         return [0.0, 1.0]
     z = 1.95996398454
@@ -53,7 +52,7 @@ def evaluate(policy, config=None, points=300, seed_base=2000000, label="q", run_
         obs = env.reset(seed=seed_base + i)
         moves = changes = 0
         previous_action = 0
-        # Reset policy randomness per point for reproducible random baselines.
+
         if isinstance(policy, RandomAgent):
             policy.rng.seed(seed_base + i + 10000000)
         while True:
@@ -78,7 +77,7 @@ def summarize(rows):
     wins = sum(r["winner"] == 1 for r in rows)
     losses = sum(r["winner"] == -1 for r in rows)
     draws = n - wins - losses
-    # A match consists of nine independently reset points, same rules for all policies.
+
     match_wins = match_losses = match_draws = 0
     for start in range(0, n - 8, 9):
         score = sum(r["winner"] for r in rows[start:start + 9])
@@ -123,7 +122,7 @@ def train(episodes, seed, checkpoints, eval_points, shaping=True, out=None,
             action = agent.action(obs, epsilon)
             result = env.step(action, opponent.action(env))
             next_obs = env.observe()
-            # Bootstrap at artificial time limits, but not after a scored point.
+
             agent.update(obs, action, result.reward, next_obs, result.terminated)
             total_reward += result.reward
             obs = next_obs
@@ -158,7 +157,7 @@ def _train_job(spec, variant, seed, models):
 
 def run_experiment(spec_path, output=None, models=None):
     spec_path = Path(spec_path)
-    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    spec = read_yaml(spec_path)
     output = Path(output or ROOT / "wyniki")
     models = Path(models or ROOT / "modele")
     output.mkdir(parents=True, exist_ok=True)
@@ -197,7 +196,7 @@ def run_experiment(spec_path, output=None, models=None):
                 row["scenario"] = scenario
             all_rows.extend(rows)
             summaries[f"{name}/0/{scenario}"] = summarize(rows)
-    # The demonstration seed is declared in the protocol before looking at test results.
+
     primary = models / f"q_seed_{spec['demo_seed']}.npz"
     (models / "pong_q.npz").write_bytes(primary.read_bytes())
     history.sort(key=lambda r: (r["variant"], r["seed"], r["episode"]))
@@ -205,7 +204,8 @@ def run_experiment(spec_path, output=None, models=None):
     write_csv(output / "learning.csv", history)
     write_csv(output / "evaluation.csv", all_rows)
     (output / "summary.json").write_text(json.dumps(summaries, indent=2), encoding="utf-8")
-    manifest = {"protocol": spec, "protocol_sha256": hashlib.sha256(spec_path.read_bytes()).hexdigest(),
+    manifest = {"protocol": spec, "protocol_file": spec_path.name,
+                "protocol_sha256": hashlib.sha256(spec_path.read_bytes()).hexdigest(),
                 "python": sys.version, "numpy": np.__version__, "platform": platform.platform(),
                 "config": cfg.to_dict(), "total_seconds": round(time.perf_counter() - started, 3),
                 "models": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()

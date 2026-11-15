@@ -66,7 +66,7 @@
     "test_seed_base": 2000000,
     "demo_seed": 7
   },
-  "protocol_sha256": "9c976c7ff24227c6d78212927c66a6b1c1e99ed5d9e4e62b708864a275071bd2",
+  "protocol_sha256": "77e703bf3def2033f0037c986e388bd108e063cb6a43a245b85d7c09271415d0",
   "python": "3.13.12 (main, Feb  4 2026, 00:05:32) [Clang 21.1.4 ]",
   "numpy": "2.3.5",
   "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
@@ -105,5 +105,7 @@
     "q_seed_19.npz": "97f9490244f19941ee17ecda0fe592e5c15faed29ba9b11a31678f3f1453a33c",
     "q_seed_41.npz": "aeae124de52f5da895fc6d0b206369576a6b7bae5bef3ace70a7838a6015d78d",
     "q_seed_7.npz": "5ca3d462b944ae48b3553c95e395943460371935cbb23ab49b644a948715d79a"
-  }
+  },
+  "original_protocol_sha256": "9c976c7ff24227c6d78212927c66a6b1c1e99ed5d9e4e62b708864a275071bd2",
+  "protocol_file": "eksperyment.yaml"
 }

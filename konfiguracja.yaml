@@ -1,0 +1,35 @@
+mode: play
+
+play:
+  model: modele/pong_q.npz
+  demo: false
+  seed: 2026
+  frames: null
+  screenshot: null
+
+train:
+  episodes: 20000
+  seed: 7
+  output: modele/wlasny.npz
+  checkpoints: [1000, 5000, 10000, 20000]
+  validation_points: 180
+  shaping: true
+  agent:
+    alpha: 0.12
+    gamma: 0.98
+    movement_cost: 0.001
+    distance_cost: 0.02
+    encoder: relative
+    cell: 50
+
+evaluate:
+  model: modele/pong_q.npz
+  policy: q
+  points: 450
+  seed_base: 2000000
+  output: wyniki_odtworzone/evaluation.csv
+
+experiment:
+  protocol: dane/eksperyment.yaml
+  output: wyniki_odtworzone
+  models: modele_odtworzone

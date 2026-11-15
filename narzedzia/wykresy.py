@@ -1,4 +1,3 @@
-"""Figures computed from measured CSV and JSON files."""
 import csv
 import json
 import os

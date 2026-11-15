@@ -14,7 +14,7 @@ Agent steruje prawą paletką. Wybiera ruch w górę, postój albo ruch w dół.
 
 Trening bez grafiki oraz gra korzystają z tego samego modułu fizyki. Symulacja: 120 Hz. Decyzje agenta: 30 Hz.
 
-Moduły: fizyka, agenci, eksperymenty, interfejs i CLI.Model NPZ zawiera tablicę Q i konfigurację. Gra tylko go odczytuje.
+Moduły: fizyka, agenci, eksperymenty, interfejs i ustawienia YAML.Model NPZ zawiera tablicę Q i konfigurację. Gra tylko go odczytuje.
 
 # 3. Q-learning i dyskretyzacja
 
@@ -36,7 +36,9 @@ Porównujemy wyłączenie wskazówek i kosztu ruchu. Dodatkowe składniki nagrod
 
 # 5. Demonstracja działającej gry
 
-python kod/main.py play --demo
+python kod/main.py
+
+W konfiguracja.yaml ustaw mode: play oraz play.demo: true.
 
 Enter: człowiek kontra agent. W/S: ruch. Spacja: pauza. Tab: porównanie z regułą, losowym i modelem przed nauką.
 
@@ -60,6 +62,6 @@ Test: 450 punktów. Główny wariant Q: średnio 62,8% wygranych, 3 ziarna treni
 
 Wynik zależy od przeciwnika i rozdzielczości stanu. Reguła podstawowa reaguje co 133 ms, agent co 33 ms. Osobny test wyrównuje częstość reakcji.
 
-Artur: fizyka i kolizje. Kacper: agent i eksperymenty.Rafał: interfejs i dokumentacja. Podział odpowiedzialności po 1/3.
+Artur: fizyka i kolizje. Kacper: agent i eksperymenty.Rafał: interfejs i dokumentacja.
 
 Dalsze prace: więcej ziaren strojenia, uwzględnienie rotacji w stanie i trening przeciw szybszej regule.

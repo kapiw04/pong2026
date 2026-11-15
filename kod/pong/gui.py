@@ -1,4 +1,3 @@
-"""Desktop interface. Uses the same simulation and policies as the experiments."""
 from collections import deque
 from dataclasses import replace
 from enum import Enum

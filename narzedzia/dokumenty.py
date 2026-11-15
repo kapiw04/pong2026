@@ -1,4 +1,3 @@
-"""Rebuild the report, slides and launch instructions from measured results."""
 import csv
 import html
 import json
@@ -114,6 +113,10 @@ def percent(value):
     return f"{100 * value:.1f}%".replace(".", ",")
 
 
+def number(value, digits=1):
+    return f"{value:.{digits}f}".replace(".", ",")
+
+
 def manuscript(pages, destination):
     def plain(value):
         return html.unescape(re.sub(r"<[^>]+>", "", value.replace("<br/>", "\n")))
@@ -142,7 +145,7 @@ def manuscript(pages, destination):
     destination.write_text("\n".join(lines), encoding="utf-8")
 
 
-def build_report(summary, manifest, team):
+def build_report(summary, manifest):
     s = summary
     seeds = manifest["protocol"]["training_seeds"]
     q = [s[f"q/{seed}/standard"] for seed in seeds]
@@ -160,55 +163,54 @@ def build_report(summary, manifest, team):
              p("Projekt 1 / Zespół 1 / poniedziałek 8:00-10:15<br/>"
                "Sztuczna inteligencja w grach i rozszerzonej rzeczywistości<br/>"
                "Sprawozdanie, 15 listopada 2026 r."),
-             p(f"Celem projektu jest nauczenie paletki sterowania metodą prób i błędów. "
-               f"Po 20 000 punktów uczenia agent w trzech przebiegach wygrywa średnio "
-               f"<b>{percent(q_mean)}</b> punktów testowych. Model przed uczeniem wygrywa "
-               f"{percent(baseline['win_rate'])}. Wyniki dotyczą opisanej reguły przeciwnika, "
-               "a nie dowolnego gracza.")]
+             p(f"Agent uczy się sterować paletką w PONG-u metodą prób i błędów. "
+               f"Po 20 000 epizodów trzy wytrenowane modele wygrywają średnio "
+               f"<b>{percent(q_mean)}</b> punktów w ocenie końcowej. Przed nauką agent wygrywa "
+               f"{percent(baseline['win_rate'])}. Przeciwnikiem w tym pomiarze jest "
+               "reguła śledząca bieżącą wysokość piłki.")]
     cover += picture(ROOT / "wyniki/gra.png", 470,
-                     "Rys. 1. Rzeczywisty zrzut demonstracji. Po prawej działa model z pliku NPZ.")
+                     "Rys. 1. Gra w trybie demonstracji. Wyuczony agent steruje prawą paletką.")
     cover += [table([["Osoba", "Odpowiedzialność"],
                      ["Artur Zamorowski", "Symulacja, model fizyki i kolizje."],
                      ["Kacper Wojtowicz", "Q-learning, reprezentacja stanu i eksperymenty."],
                      ["Rafał Wybraniec", "Interfejs i dokumentacja."]], [143, 347]),
-              Spacer(1, 7),
-              p("Podział odpowiedzialności po 1/3. Zespół odpowiada za przygotowanie "
-                "demonstracji i omówienie wyników.", True)]
+              Spacer(1, 7)]
     pages.append(cover)
 
     pages.append([title("1. Zadanie i architektura"),
-        p("Agent steruje prawą paletką. Otrzymuje położenie piłki, jej prędkość i położenie "
-          "własnej paletki. Dodatkowo symulator udostępnia prędkość paletki i rotację piłki. "
-          "Agent nie otrzymuje położenia przeciwnika. Wybiera jedną z trzech akcji: -1, 0, +1, "
-          "odpowiadających ruchowi w górę, postojowi i ruchowi w dół."),
+        p("Agent steruje prawą paletką. Wybiera ruch w górę, postój albo ruch w dół, "
+          "zapisane jako akcje -1, 0 i +1. Obserwacja zawiera położenie i prędkość piłki, "
+          "rotację oraz położenie i prędkość własnej paletki. Pozycja przeciwnika "
+          "pozostaje poza obserwacją."),
         p("Za punkt uznajemy przejście piłki poza boczną granicę boiska. Epizod treningowy "
           "kończy się po punkcie albo po 20 s czasu symulowanego. Serwis losuje kierunek, "
           "kąt i wysokość piłki oraz początkowe położenia obu paletek."),
-        sub("Wspólny rdzeń treningu i gry"),
+        sub("Podział programu"),
         table([["Moduł", "Rola i przepływ danych"],
                ["config.py", "Stałe boiska, fizyki i częstotliwości symulacji."],
                ["physics.py", "Pong.reset(), observe(), step(). Akcje obu stron zmieniają stan i zwracają wynik przejścia."],
                ["agents.py", "Dyskretyzacja obserwacji, tablica Q, aktualizacja, strategie odniesienia i zapis modelu."],
                ["experiments.py", "Generowanie epizodów bez grafiki, ocena zamrożonych modeli, CSV i metadane."],
                ["gui.py", "Sceny menu, gry, pauzy i końca meczu. Obsługa klawiatury i rysowanie stanu rdzenia."],
-               ["cli.py", "Polecenia play, train, evaluate i experiment."],
-               ["narzedzia/", "Wykresy, generowanie PDF i kontrolowane pakowanie ZIP."]], [103, 387]),
-        p("Pętla uczenia pobiera obserwację, wybiera akcję epsilon-greedy, wykonuje krok "
-          "środowiska i aktualizuje jedną komórkę tablicy Q. Pętla gry korzysta z tego samego "
-          "środowiska, ale tylko odczytuje model. Wyświetlanie nie wpływa na czas fizyki."),
+               ["app.py, settings.py", "Odczyt konfiguracja.yaml, sprawdzenie parametrów i uruchomienie wybranego trybu."],
+               ["narzedzia/", "Wykresy i generowanie dokumentów PDF."]], [103, 387]),
+        p("Trening i gra korzystają z tej samej symulacji. Podczas treningu agent "
+          "wybiera akcję, wykonuje krok i poprawia jedną wartość w tablicy Q. W grze "
+          "odczytuje gotową tablicę. Fizyka ma stały krok czasu, niezależny od rysowania."),
+        p("Program uruchamia plik kod/main.py bez argumentów. Tryb, model i parametry "
+          "wybiera konfiguracja.yaml. Ścieżki w ustawieniach odnoszą się do katalogu projektu."),
         sub("Środowisko wykonawcze"),
         p(f"Pomiary wykonano w Pythonie {manifest['python'].split()[0]} z NumPy "
           f"{manifest['numpy']}. Interfejs korzysta z Pygame-ce 2.5.8 i SDL. NumPy przechowuje "
-          "tablice, Matplotlib tworzy wykresy, a ReportLab PDF-y. "
+          "tablice, PyYAML 6.0.3 odczytuje ustawienia, Matplotlib tworzy wykresy, a ReportLab PDF-y. "
           "Dokładne wersje przypięto w plikach wymagań."),
-        p("Pygame-ce jest biblioteką multimedialną. Projekt ma własną pętlę i fizykę. "
-          "Nie integruje gotowego silnika Godot ani Unity i nie deklaruje takiego rozszerzenia.")])
+        p("Pygame-ce obsługuje okno, klawiaturę i rysowanie. Pętlę gry oraz model fizyczny "
+          "zawierają moduły projektu.")])
 
     pages.append([title("2. Fizyka rozgrywki"),
-        p("Rozszerzenie fizyki zmienia zarówno sterowanie, jak i obserwowany tor piłki. "
-          "Paletka nie osiąga zadanej prędkości natychmiast. Agent musi odpowiednio wcześnie "
-          "rozpocząć hamowanie. Trafienie krawędzią i ruch paletki nadają piłce inny kierunek "
-          "oraz rotację."),
+        p("Paletka przyspiesza i hamuje, więc agent musi rozpocząć ruch przed nadejściem "
+          "piłki. Miejsce trafienia i prędkość paletki zmieniają odbicie. Ruch paletki "
+          "nadaje też rotację, która zakrzywia dalszy tor lotu."),
         table([["Parametr", "Wartość w scenariuszu standard"],
                ["Boisko / paletka / promień piłki", "900 x 500 px / 12 x 88 px / 8 px"],
                ["Prędkość / przyspieszenie paletki", "460 px/s / 3600 px/s², identyczne po obu stronach"],
@@ -217,10 +219,10 @@ def build_report(summary, manifest, team):
                ["Krok fizyki / decyzji", "1/120 s / 1/30 s"],
                ["Rotacja", "Zakres [-7, 7], wykładniczy zanik z parametrem 0,55 s⁻¹"]], [190, 300]),
         sub("Przebieg pojedynczego kroku"),
-        p("Paletka przyspiesza w stronę prędkości zadanej przez akcję. Symulator ogranicza "
-          "ją do boiska. Następnie koryguje prędkość piłki o efekt rotacji, przesuwa piłkę, "
-          "odbija ją od ścian i sprawdza przecięcie czoła paletki. Odbicie zachowuje nadmiar "
-          "drogi po kolizji, co ogranicza przyklejanie do przeszkody."),
+        p("W każdym kroku symulator przesuwa paletki i ogranicza ich pozycje do boiska. "
+          "Potem oblicza wpływ rotacji na prędkość piłki, przesuwa ją i rozpatruje kolizje. "
+          "Jeśli piłka przekroczy powierzchnię odbicia, zachowuje pozostałą część drogi "
+          "po przeciwnej stronie. Dzięki temu odbicie nie zatrzymuje jej na przeszkodzie."),
         code("u = clip((y_pilki - y_paletki) / 44, -1, 1)\n"
              "speed = min(800, 1.06 * hypot(vx, vy))\n"
              "vy_out = clip(speed*sin(0.96*u) + 0.22*vp,\n"
@@ -230,49 +232,50 @@ def build_report(summary, manifest, team):
           "zmienia się o 0,13·spin·v_x·dt. Potem normalizujemy wektor do poprzedniej "
           "szybkości. Tor zakrzywia się, lecz sam efekt rotacji nie dodaje energii. "
           "Odbicie od poziomej ściany zmienia znak i zmniejsza rotację współczynnikiem 0,8."),
-        p("Kolizja z paletką używa przecięcia jej czoła, również gdy piłka przeskoczy tę "
-          "płaszczyznę w jednym kroku. Zasięg pionowy kontaktu zwiększamy o promień piłki. "
-          "To przybliżenie narożników, nie dokładna kolizja koła z prostokątem. Model ma "
-          "charakter zręcznościowy i nie jest symulacją rzeczywistej aerodynamiki."),
+        p("Sprawdzenie przecięcia czoła paletki wykrywa kontakt także wtedy, gdy piłka "
+          "przeskoczy tę płaszczyznę w jednym kroku. Pionowy zasięg kontaktu obejmuje "
+          "dodatkowo promień piłki, co upraszcza kolizje przy narożnikach. Parametry fizyki "
+          "dobrano do gry zręcznościowej. Nie odwzorowują pomiarów rzeczywistej piłki."),
         p("Test simple_physics wyłącza zależność odbicia od miejsca trafienia, ruchu "
           "paletki i rotacji. Pozostawia odbicia od ścian oraz wzrost szybkości. "
           "Zmienia dynamikę gotowego modelu i służy do oceny jego przenoszenia.")])
 
     pages.append([title("3. Stan agenta i uczenie"),
-        p("Zastosowano tablicowy Q-learning [1]. Każdy stan ma trzy wartości odpowiadające "
-          "akcjom. Tablice rozpoczynają od zera. Uczenie nie korzysta z demonstracji człowieka "
-          "ani z kopiowania ruchów reguły przeciwnika."),
+        p("Tablicowy Q-learning [1] przypisuje każdemu stanowi trzy wartości, po jednej "
+          "dla każdej akcji. Wszystkie wartości zaczynają od zera. Agent poznaje skutki "
+          "własnych ruchów podczas kolejnych epizodów."),
         code("Q[s,a] = Q[s,a] + alfa * (r + gamma*max(Q[s_next])\n"
              "                         - Q[s,a])\n"
              "Dla zdobytego/straconego punktu: max(Q[s_next]) = 0"),
         p("Współczynnik alfa wynosi 0,12, a gamma 0,98. Epsilon maleje liniowo z 0,9 "
           "do 0,05 przez pierwsze 85% epizodów i pozostaje na tym poziomie. Podczas oceny "
-          "epsilon wynosi zero. Przy równych wartościach preferowany jest postój. Limit "
-          "czasu odróżniamy od końca punktu: przy limicie aktualizacja zachowuje bootstrap."),
+          "epsilon wynosi zero. Przy równych wartościach agent wybiera postój. Po zdobyciu "
+          "lub stracie punktu aktualizacja pomija wartość następnego stanu. Przy samym "
+          "limicie czasu nadal ją uwzględnia."),
         table([["Reprezentacja", "Opis", "Liczba stanów"],
                ["Siatka 50 px", "18 kolumn, 19 różnic wierszy, znak vx, 3 kategorie vy i 3 kategorie prędkości paletki", "6156"],
                ["Siatka 100 px", "9 kolumn, 9 różnic wierszy, pozostałe cechy jak wyżej", "1458"],
                ["Względna, demonstracja", "15 przedziałów błędu dolotu, 3 pasy x, znak vx, 3 prędkości paletki i 3 strefy jej położenia", "810"]], [102, 320, 68]),
-        p("Siatki kwadratowe realizują wariant opisany w planie. Dodatkowo sprawdzono "
-          "redukcję stanu do błędu ustawienia względem przybliżonego miejsca dolotu. "
-          "Prognoza liniowa używa bieżących x, y, vx, vy i odbić od ścian. Gdy piłka "
-          "oddala się, punktem odniesienia jest środek boiska. Prognoza pomija rotację. "
-          "To jawna wiedza dziedzinowa, dlatego porównanie reprezentacji obejmuje również "
-          "korzyść z prognozowania, nie tylko zmianę liczby komórek."),
+        p("Oprócz siatek sprawdzono stan oparty na przewidywanym miejscu dolotu. "
+          "Agent oblicza je z bieżących x, y, vx i vy, uwzględniając odbicia od ścian. "
+          "Gdy piłka oddala się, odnosi ustawienie paletki do środka boiska. Prognoza "
+          "pomija rotację. Porównanie tej reprezentacji z siatką obejmuje zatem dwie "
+          "zmiany: mniejszą tablicę i dodatkową informację o spodziewanym torze piłki."),
         sub("System nagród i kar"),
         p("Nagroda bazowa to +1 za zdobyty punkt, -1 za stratę i +0,2 za własne odbicie. "
           "Dodajemy koszt 0,001 za polecenie ruchu. W wariancie ze wskazówkami występuje "
           "koszt 0,02·|błąd dolotu|/500 oraz składnik gamma·Phi(s') - Phi(s), gdzie "
           "Phi(s) = -|błąd dolotu|/500, a Phi stanu terminalnego jest zerowe [2]."),
-        p("Składnik potencjałowy ma postać opisaną w literaturze, ale cały system zawiera "
-          "także inne koszty i nagrodę za odbicie. Zmieniają one cel optymalizacji. "
-          "Nie zakładamy zachowania optymalnej strategii wygrywania ani teoretycznej "
-          "zbieżności przy agregacji stanów, stałej alfie i pominięciu części dynamiki.")])
+        p("Koszty ruchu i błędu ustawienia oraz nagroda za odbicie wpływają na to, "
+          "czego uczy się agent. Może on preferować dłuższą wymianę, nawet jeśli nie "
+          "prowadzi ona do punktu. Z tego powodu skuteczność oceniamy osobno na podstawie "
+          "wygranych, strat i długości wymian.")])
 
     pages.append([title("4. Protokół eksperymentów"),
-        p("Dane wejściowe generuje symulator. Nie pobierano zewnętrznych danych ani modeli. "
-          "Każdy trening rozpoczyna nową, zerową tablicę Q i używa własnego generatora "
-          "losowego. Wyniki oceny pochodzą z zamrożonej polityki."),
+        p("Dane powstają w symulatorze. Każdy trening rozpoczyna zerową tablicę Q "
+          "i używa osobnego ziarna losowania. Podczas oceny tablica pozostaje bez zmian, "
+          "a agent wybiera akcje bez losowej eksploracji. Protokół zapisano w "
+          "dane/eksperyment.yaml."),
         table([["Ustawienie", "Przyjęta wartość"],
                ["Budżet", "20 000 epizodów na przebieg, 10 przebiegów = 200 000 punktów uczenia"],
                ["Główne porównanie", "Wskazówki włączone / wyłączone, po 3 ziarna: 7, 19, 41"],
@@ -283,8 +286,8 @@ def build_report(summary, manifest, team):
         sub("Przeciwnik i strategie odniesienia"),
         p("Reguła steruje paletką w stronę bieżącej wysokości piłki z martwą strefą 12 px. "
           "Aktualizuje akcję co 4 decyzje, czyli co 133 ms. Paletki obu stron mają tę samą "
-          "prędkość i przyspieszenie. Uczący się agent reaguje co 33 ms. Asymetria częstości "
-          "reakcji jest częścią zadania i ogranicza zakres interpretacji wygranych."),
+          "prędkość i przyspieszenie. Uczący się agent reaguje co 33 ms. Ma więc przewagę "
+          "czasu reakcji. Osobny scenariusz sprawdza wynik po przyspieszeniu przeciwnika."),
         p("W ocenie sprawdzamy także agenta losowego, zerową tablicę Q i regułę po prawej. "
           "Reguła porównawcza ma taką samą częstość reakcji jak przeciwnik podstawowy. "
           "Test fast_reaction przyspiesza reakcję lewej strony do 33 ms. Fast zwiększa "
@@ -294,19 +297,19 @@ def build_report(summary, manifest, team):
           "paletek na punkt, czas trwania i udział decyzji z poleceniem ruchu. Dodatkowo "
           "liczymy wyniki bloków po 9 niezależnych punktów jako mecze laboratoryjne. "
           "Interfejs używa innej reguły: do 7 zdobytych punktów, bez limitu czasu wymiany."),
-        p(f"Cały protokół zawiera {total_points} punktów testu końcowego i trwał "
-          f"{minutes:.1f} min w zarejestrowanym środowisku, z maksymalnie trzema procesami "
-          "trenującymi równolegle. Walidacja nie aktualizuje modelu. Wspólne ziarna "
-          "zapewniają takie same serwisy, ale dalsze trajektorie zależą od strategii."),
-        p("Przedziały Wilsona 95% opisują niepewność udziału wygranych przy ustalonym "
-          "modelu i rozkładzie serwisów. Rozrzut między trzema treningami raportujemy "
-          "osobno. Pojedyncze próby ustawień siatki i alfy mają charakter rozpoznawczy.")])
+        p(f"Ocena końcowa obejmuje {total_points} punktów. Trening i pomiary trwały "
+          f"{number(minutes)} min na zapisanym środowisku, przy maksymalnie trzech procesach "
+          "trenujących równolegle. Te same ziarna dają modelom jednakowe serwisy. "
+          "Dalszy przebieg punktu zależy już od wybranych ruchów."),
+        p("Przedziały Wilsona 95% opisują zmienność wyniku na nowych serwisach przy "
+          "ustalonej tablicy Q. Osobno podajemy rozrzut trzech treningów. Dla siatki "
+          "i alfy wykonano po jednej próbie, więc te porównania wymagają dalszego sprawdzenia.")])
 
     result_rows = [["Polityka / ziarno", "Wygrane", "Straty", "Remisy", "Odbicia / punkt"]]
     for label, key in [("Przed nauką", "untrained/0/standard"), ("Losowy", "random/0/standard"),
                        ("Reguła", "tracking/0/standard")]+[(f"Q / {seed}", f"q/{seed}/standard") for seed in seeds]:
         r = s[key]
-        result_rows.append([label, f"{r['wins']} ({percent(r['win_rate'])})", r["losses"], r["draws"], f"{r['mean_hits']:.2f}"])
+        result_rows.append([label, f"{r['wins']} ({percent(r['win_rate'])})", r["losses"], r["draws"], number(r['mean_hits'], 2)])
     pages.append([title("5. Wyniki uczenia"),
         *picture(ROOT / "wyniki/uczenie.png", 490,
                  "Rys. 2. Walidacja zamrożonych modeli. Linie: średnia z 3 treningów. "
@@ -314,19 +317,20 @@ def build_report(summary, manifest, team):
         table(result_rows, [110, 116, 68, 68, 128]),
         Spacer(1, 10),
         p(f"Średni odsetek wygranych po uczeniu ze wskazówkami wynosi {percent(q_mean)}, "
-          f"a odchylenie standardowe między treningami {100*q_sd:.1f} pkt proc. "
-          f"Wariant bez wskazówek osiąga średnio {percent(no_mean)}. "
-          "Krzywe nie są monotoniczne. Późniejszy punkt kontrolny może dać gorszą "
-          "strategię z powodu stałego współczynnika aktualizacji, eksploracji i agregacji stanów."),
+          f"a odchylenie standardowe między treningami {number(100*q_sd)} pkt proc. "
+          f"Po wyłączeniu wskazówek w nagrodzie wynik wynosi średnio {percent(no_mean)}. "
+          "W tych próbach dodatkowe wskazówki nie poprawiły końcowego odsetka wygranych. "
+          "Wykres pokazuje też spadki między punktami kontrolnymi. Dłuższy trening "
+          "przy stałej alfie nie gwarantuje lepszego wyniku."),
         p(f"Dla modelu demonstracyjnego uzyskano {primary['wins']} wygranych, "
           f"{primary['losses']} strat i {primary['draws']} remisów. Jego udział wygranych "
           f"to {percent(primary['win_rate'])}, z przedziałem Wilsona "
           f"[{percent(primary['win_ci95'][0])}; {percent(primary['win_ci95'][1])}]. "
           f"W blokach po 9 punktów wygrał {primary['match_wins']} z {primary['matches']} "
           "meczów laboratoryjnych. Surowe wiersze są w evaluation.csv."),
-        p("Poprawa względem zerowej tablicy potwierdza, że zapisane wartości Q zmieniają "
-          "zachowanie agenta. Sam wzrost długości wymiany nie oznacza przewagi w wygrywaniu, "
-          "dlatego raportujemy równocześnie czas, odbicia i wynik punktu.")])
+        p("Wynik modelu po nauce jest wyższy niż zerowej tablicy i reguły porównawczej. "
+          "Duża liczba remisów pokazuje jednak, że agent często utrzymuje piłkę "
+          "do końca limitu zamiast zdobyć punkt.")])
 
     scen_rows = [["Scenariusz", "Q, średnia 3 ziaren", "Reguła"]]
     for scene, label in [("standard", "Standard"), ("fast", "Piłka +20%"),
@@ -346,13 +350,13 @@ def build_report(summary, manifest, team):
         p(f"Przy tym samym budżecie siatka 50 px uzyskała {percent(g50['win_rate'])}, "
           f"a siatka 100 px {percent(g100['win_rate'])} wygranych punktów. "
           f"Wariant z alfą 0,35 uzyskał {percent(high_alpha['win_rate'])}. "
-          "Jedno ziarno nie wystarcza do ogólnego uszeregowania rozdzielczości i alfy. "
-          "Wynik pokazuje wpływ ustawień w tej konkretnej próbie."),
+          "Dokładniejsza siatka wypadła lepiej w tej próbie. Do wyboru ustawienia "
+          "na tej podstawie potrzebne byłyby kolejne ziarna treningu."),
         p(f"Udział poleceń ruchu wyniósł {percent(primary['move_rate'])} przy koszcie 0,001 "
           f"oraz {percent(no_move['move_rate'])} bez niego. Udział wygranych bez kosztu "
-          f"wyniósł {percent(no_move['win_rate'])}. Koszt dotyczy każdej akcji ruchu, "
-          "a nie bezpośrednio częstotliwości zmiany kierunku. Nie jest więc samodzielną "
-          "miarą płynności animacji."),
+          f"wyniósł {percent(no_move['win_rate'])}. Koszt nie ograniczył liczby poleceń "
+          "ruchu w tym przebiegu. Jego zakładany efekt nie pojawił się w pomiarze. "
+          "Sam udział poleceń ruchu nie mierzy częstotliwości zmiany kierunku."),
         p(f"Szybsza piłka zwiększa średni udział wygranych Q do {percent(fast_rate)}, bo utrudnia "
           f"również zadanie regule. Szybka reakcja przeciwnika obniża wynik Q do {percent(reaction_rate)}. "
           "Rezultat zależy więc silnie od czasu reakcji przeciwnika. Testy używają "
@@ -364,14 +368,17 @@ def build_report(summary, manifest, team):
           "liczniki odwiedzin i metadane JSON. Nie wymaga ponownego uczenia ani pobierania "
           "zewnętrznych wag. Plik manifest.json rejestruje konfigurację, środowisko, ziarna "
           "i sumy SHA-256 modeli."),
+        p("W konfiguracja.yaml ustaw mode na play, train, evaluate albo experiment, "
+          "a następnie uruchom program bez argumentów. W trybie play pole demo włącza "
+          "pokaz reguła kontra agent. Sekcja experiment wskazuje protokół YAML oraz "
+          "osobne katalogi dla odtworzonych wyników i modeli."),
         code("python -m pip install -r uruchomienie/wymagania.txt\n"
-             "python kod/main.py play --demo\n"
-             "python kod/main.py evaluate --points 450\n"
-             "python kod/main.py experiment \\\n  --output wyniki_odtworzone --models modele_odtworzone"),
+             "python kod/main.py"),
         p("Przebiegi treningowe CSV zawierają epsilon, wynik, liczbę odbić i kroków "
           "każdego epizodu. Learning.csv przechowuje osobną ocenę walidacyjną, a evaluation.csv "
           "każdy punkt testu. Dokumenty i wykresy można ponownie wygenerować dołączonymi "
-          "skryptami. Wersję kodu w paczce wskazuje wersja.json i sumy plików w archiwum."),
+          "skryptami. Wersję kodu podaje wersja.json. Sumy plików pozwalają sprawdzić "
+          "zawartość archiwum."),
         sub("Sprawdzenie i ograniczenia"),
         p("Ponowne uruchomienie oceny dołączonego modelu odtwarza wyniki 450 punktów "
           "ze scenariusza standard. Gra korzysta z zamrożonej tablicy Q. Zrzuty "
@@ -382,12 +389,12 @@ def build_report(summary, manifest, team):
           "ziarnie dla kilku ustawień. Pomiary dotyczą środowiska lokalnego; nie potwierdzają "
           "ręcznej gry na wszystkich systemach operacyjnych."),
         sub("Wnioski i dalsze prace"),
-        p("Q-learning poprawił skuteczność względem modelu przed nauką. Rozdzielenie "
-          "treningu od grafiki i zapis modeli pozwalają pokazać wynik bez czekania na naukę. "
-          "Porównanie nagród nie uzasadnia traktowania każdej wskazówki jako poprawy. "
-          "Następny krok to wieloziarnowe strojenie, porównanie równej częstości reakcji "
-          "podczas treningu oraz lepsze uwzględnienie rotacji w stanie. Integracja z gotowym "
-          "silnikiem pozostaje możliwym dalszym rozszerzeniem."),
+        p("Q-learning nauczył paletkę utrzymywania piłki i poprawił wynik względem "
+          "modelu przed nauką. Największym ograniczeniem pozostaje zależność od "
+          "przeciwnika: wyrównanie czasu reakcji mocno obniża udział wygranych. "
+          "W kolejnym eksperymencie warto trenować przeciw szybszej regule i "
+          "powtórzyć porównanie nagród dla większej liczby ziaren. Dopiero potem "
+          "można ocenić, które wskazówki i parametry warto zachować."),
         sub("Źródła i wykorzystane rozwiązania"),
         p('[1] C. Watkins, P. Dayan, <link href="https://www.gatsby.ucl.ac.uk/~dayan/papers/cjch.pdf" color="#148a76">Q-learning</link>, Machine Learning 8, 279-292, 1992.<br/>'
           '[2] A. Ng, D. Harada, S. Russell, <link href="https://people.eecs.berkeley.edu/~pabbeel/cs287-fa09/readings/NgHaradaRussell-shaping-ICML1999.pdf" color="#148a76">Policy invariance under reward transformations</link>, ICML, 1999.<br/>'
@@ -418,18 +425,19 @@ def build_instructions():
           "korzysta z internetu. Trening i ocena działają również bez ekranu."),
         sub("1. Instalacja na macOS / Linux"),
         code("python3 -m venv .venv\nsource .venv/bin/activate\n"
-             "python -m pip install -r uruchomienie/wymagania.txt\npython kod/main.py play"),
+             "python -m pip install -r uruchomienie/wymagania.txt\npython kod/main.py"),
         sub("2. Instalacja na Windows PowerShell"),
         code("py -3 -m venv .venv\n"
              ".venv\\Scripts\\python.exe -m pip install -r uruchomienie/wymagania.txt\n"
-             ".venv\\Scripts\\python.exe kod\\main.py play"),
+             ".venv\\Scripts\\python.exe kod\\main.py"),
         p("W Windows nie trzeba aktywować środowiska. W kolejnych poleceniach zamiast "
           "python można używać .venv\\Scripts\\python.exe."),
         sub("3. Pierwszy przykład bez uczenia"),
-        code("python kod/main.py play --demo\npython kod/main.py evaluate --points 450"),
-        p("Dołączony modele/pong_q.npz jest gotowy do użycia. Model działa lokalnie. "
-          "Ocena używa ziaren 2000000-2000449 i wypisuje JSON z wynikiem punktów, "
-          "czasem, odbiciami oraz meczami laboratoryjnymi."),
+        code("python kod/main.py"),
+        p("Program czyta konfiguracja.yaml. Domyślny mode: play uruchamia grę z "
+          "modelem modele/pong_q.npz. Ustaw play.demo na true, aby zobaczyć pokaz. "
+          "Do oceny 450 punktów wybierz mode: evaluate. Każdy tryb uruchamia to samo "
+          "polecenie, bez dodatkowych argumentów."),
         table([["Klawisz", "Działanie"], ["Enter", "Gra / nowy mecz po zakończeniu"],
                ["W/S lub strzałki", "Sterowanie lewą paletką"], ["Spacja", "Pauza / wznowienie"],
                ["Tab", "Zmiana przeciwnika i nowy mecz"], ["D / R", "Demonstracja / reset meczu"],
@@ -437,23 +445,23 @@ def build_instructions():
                ["Esc", "Menu, następnie zamknięcie programu"]], [140, 350])],
         [title("Eksperymenty i przygotowanie ZIP"),
          sub("4. Własny model i pełne odtworzenie"),
-         code("python kod/main.py train --episodes 20000 --seed 7\n"
-              "python kod/main.py play --model modele/wlasny.npz\n"
-              "python kod/main.py experiment \\\n  --output wyniki_odtworzone --models modele_odtworzone"),
+         code("mode: train\ntrain:\n  episodes: 20000\n  seed: 7\n  output: modele/wlasny.npz"),
+         p("Zmień te pola w konfiguracja.yaml i uruchom python kod/main.py. "
+           "Po treningu wybierz mode: play i ustaw play.model na modele/wlasny.npz. "
+           "Tryb experiment odtwarza pełny protokół wskazany w sekcji experiment."),
          p("Pełny eksperyment wykonuje 10 treningów po 20 000 epizodów, używając do "
-           "3 procesów. Czas zależy od sprzętu. Zmiana workers w kopii dane/eksperyment.json "
-           "ogranicza równoległość. Kopię przekaż przez --spec. Pliki odtworzone zapisuj "
+           "3 procesów. Czas zależy od sprzętu. Pole workers w dane/eksperyment.yaml "
+           "ogranicza liczbę procesów. Pliki odtworzone zapisuj "
            "osobno, aby zachować oryginalne pomiary."),
          sub("5. Wykresy i dokumentacja PDF"),
          code("python -m pip install -r uruchomienie/wymagania_dev.txt\n"
               "python narzedzia/wykresy.py\npython narzedzia/dokumenty.py"),
          p("Pakiet deweloperski jest potrzebny tylko do regenerowania dokumentów. "
-           "Gra wymaga jedynie NumPy i Pygame-ce. Skrypty korzystają z dołączonych CSV "
+           "Gra wymaga NumPy, Pygame-ce i PyYAML. Skrypty korzystają z dołączonych CSV "
            "i JSON. Generowanie PDF nie uruchamia treningu."),
-         sub("6. Repozytorium i archiwum"),
-         code("git log -1 --oneline\npython narzedzia/pakuj.py"),
-         p("Paker wymaga zapisanych zmian w Git. Tworzy dist/projekt_1_pon_8.zip "
-           "z jednym katalogiem projekt_1_pon_8/. Archiwum zawiera kod, modele, wyniki, "
+         sub("6. Oddanie projektu"),
+         p("Gotowa paczka to dist/projekt_1_pon_8.zip "
+           "z jednym katalogiem projekt_1_pon_8/. Zawiera kod, modele, wyniki, "
            "dokumenty, wersja.json i sumy SHA-256. Jedna osoba przesyła je do zadania "
            "w Teams. Wszyscy członkowie zespołu uczestniczą w prezentacji."),
          sub("Rozwiązywanie problemów"),
@@ -462,7 +470,7 @@ def build_instructions():
            "katalog modele/. Brak urządzenia wideo: uruchom ocenę bez okna albo korzystaj "
            "z sesji graficznej."),
          p("Wersje sprawdzone lokalnie: Python 3.13.12, NumPy 2.3.5, Pygame-ce 2.5.8, "
-           "Matplotlib 3.11.2, ReportLab 5.1.0 i pypdf 7.1.0. "
+           "PyYAML 6.0.3, Matplotlib 3.11.2, ReportLab 5.1.0 i pypdf 7.1.0. "
            "Lista ta opisuje środowisko pomiarów; nie oznacza testu ręcznej gry "
            "na wszystkich systemach.", True)]]
     story = []
@@ -527,7 +535,7 @@ def build_slides(s, manifest):
     body("Agent steruje prawą paletką. Wybiera ruch w górę, postój albo ruch w dół.")
     body("Trening bez grafiki oraz gra korzystają z tego samego modułu fizyki. "
          "Symulacja: 120 Hz. Decyzje agenta: 30 Hz.", 233)
-    body("Moduły: fizyka, agenci, eksperymenty, interfejs i CLI.<br/>"
+    body("Moduły: fizyka, agenci, eksperymenty, interfejs i ustawienia YAML.<br/>"
          "Model NPZ zawiera tablicę Q i konfigurację. Gra tylko go odczytuje.", 352)
     c.showPage()
 
@@ -550,7 +558,8 @@ def build_slides(s, manifest):
     c.showPage()
 
     start("Demonstracja działającej gry", 5)
-    body("python kod/main.py play --demo", size=26)
+    body("python kod/main.py", size=26)
+    body("W konfiguracja.yaml ustaw mode: play oraz play.demo: true.", 184, 18)
     body("Enter: człowiek kontra agent. W/S: ruch. Spacja: pauza. "
          "Tab: porównanie z regułą, losowym i modelem przed nauką.", 219)
     body("Przedmiot demonstracji: śledzenie piłki, odbicie ruchomą paletką, "
@@ -573,7 +582,7 @@ def build_slides(s, manifest):
     body("Wynik zależy od przeciwnika i rozdzielczości stanu. Reguła podstawowa reaguje "
          "co 133 ms, agent co 33 ms. Osobny test wyrównuje częstość reakcji.", size=20)
     body("Artur: fizyka i kolizje. Kacper: agent i eksperymenty.<br/>"
-         "Rafał: interfejs i dokumentacja. Podział odpowiedzialności po 1/3.", 249, 20)
+         "Rafał: interfejs i dokumentacja.", 249, 20)
     body("Dalsze prace: więcej ziaren strojenia, uwzględnienie rotacji w stanie "
          "i trening przeciw szybszej regule.", 357, 20)
     c.showPage()
@@ -589,8 +598,7 @@ def main():
     styles()
     summary = json.loads((ROOT / "wyniki/summary.json").read_text())
     manifest = json.loads((ROOT / "wyniki/manifest.json").read_text())
-    team = json.loads((ROOT / "dane/zespol.json").read_text())
-    build_report(summary, manifest, team)
+    build_report(summary, manifest)
     build_instructions()
     build_slides(summary, manifest)
     print("Utworzono sprawozdanie (8 stron), prezentację (8 slajdów) i instrukcję (2 strony).")

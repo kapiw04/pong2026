@@ -1,4 +1,3 @@
-"""Tabular Q-learning and explicit comparison policies."""
 from bisect import bisect_right
 import math
 import json
@@ -16,7 +15,6 @@ ENCODER_VERSION = 4
 
 
 def target_y(obs, config=None):
-    """Linear wall-reflected landing estimate. Spin curvature is not predicted."""
     c = config or Config()
     x, y, vx, vy, *_ = obs
     if vx <= 0:
@@ -42,7 +40,6 @@ def encode(obs, config=None):
 
 
 def potential(obs, config=None):
-    """Potential based on the same approximate landing feature as the table."""
     c = config or Config()
     return -abs(target_y(obs, c) - obs[4]) / c.height
 
@@ -79,7 +76,7 @@ class QAgent:
         if epsilon > 0 and self.rng.random() < epsilon:
             return self.rng.choice(ACTIONS)
         values = self.q[self.state(obs)]
-        # Deterministic and unbiased vertical tie handling: prefer staying still.
+
         best = max(values)
         if values[1] == best:
             return 0
@@ -114,7 +111,7 @@ class QAgent:
 
     @classmethod
     def load(cls, path):
-        # Numeric arrays + JSON only. No pickle or executable model objects.
+
         with np.load(path, allow_pickle=False) as data:
             meta = json.loads(str(data["metadata"]))
             if meta["encoder_version"] != ENCODER_VERSION:

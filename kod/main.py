@@ -1,4 +1,4 @@
-from pong.cli import main
+from pong.app import main
 
 if __name__ == "__main__":
     main()

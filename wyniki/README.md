@@ -1,6 +1,7 @@
 # Pomiary
 
-Wyniki pochodzą z uruchomienia protokołu `dane/eksperyment.json`.
+Wyniki pochodzą z protokołu zapisanego w `dane/eksperyment.yaml`.
+Parametry pozostały takie same po przeniesieniu konfiguracji do YAML.
 
 - `evaluation.csv`: 13 950 punktów testu końcowego. Kolumny identyfikują politykę,
   ziarno treningu, scenariusz i ziarno serwisu. `winner` to 1 dla prawej strony,
