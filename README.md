@@ -1,7 +1,7 @@
 # Projekt 1. Pong - przeciwnik uczący się grać
 
 **Zespół 1, poniedziałek 8:00-10:15.** Przedmiot: Sztuczna inteligencja w grach
-i rozszerzonej rzeczywistości. Wersja 1.0.0.
+i rozszerzonej rzeczywistości. Wersja 1.0.1.
 
 Gra 2D z tablicowym Q-learningiem, treningiem bez grafiki i zapisem wyuczonego
 modelu. Agent wybiera ruch w górę, postój albo ruch w dół. Wyniki porównano
