@@ -293,7 +293,7 @@ def build_report(summary, manifest, team):
         p("Mierzymy udział wygranych punktów, straty, remisy po 20 s, liczbę odbić obu "
           "paletek na punkt, czas trwania i udział decyzji z poleceniem ruchu. Dodatkowo "
           "liczymy wyniki bloków po 9 niezależnych punktów jako mecze laboratoryjne. "
-          "Interfejs używa innej reguły: do 7 zdobytych punktów."),
+          "Interfejs używa innej reguły: do 7 zdobytych punktów, bez limitu czasu wymiany."),
         p(f"Cały protokół zawiera {total_points} punktów testu końcowego i trwał "
           f"{minutes:.1f} min w zarejestrowanym środowisku, z maksymalnie trzema procesami "
           "trenującymi równolegle. Walidacja nie aktualizuje modelu. Wspólne ziarna "
@@ -433,6 +433,7 @@ def build_instructions():
         table([["Klawisz", "Działanie"], ["Enter", "Gra / nowy mecz po zakończeniu"],
                ["W/S lub strzałki", "Sterowanie lewą paletką"], ["Spacja", "Pauza / wznowienie"],
                ["Tab", "Zmiana przeciwnika i nowy mecz"], ["D / R", "Demonstracja / reset meczu"],
+               ["H", "Sterowanie, rozgrywka wstrzymana podczas pomocy"],
                ["Esc", "Menu, następnie zamknięcie programu"]], [140, 350])],
         [title("Eksperymenty i przygotowanie ZIP"),
          sub("4. Własny model i pełne odtworzenie"),

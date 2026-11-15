@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pong-q-learning"
-version = "1.0.1"
+version = "1.0.2"
 description = "PONG z tablicowym Q-learningiem i rozszerzoną fizyką"
 requires-python = ">=3.11"
 dependencies = ["numpy>=2.2,<3", "pygame-ce>=2.5,<3"]

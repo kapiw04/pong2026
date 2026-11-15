@@ -26,7 +26,7 @@ def main():
     if status.strip() and not args.allow_dirty:
         raise SystemExit("Zapisz zmiany w Git przed pakowaniem, aby wersja była jednoznaczna.")
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    version = {"version": "1.0.1", "commit": commit, "dirty": bool(status.strip()),
+    version = {"version": "1.0.2", "commit": commit, "dirty": bool(status.strip()),
                "repository": "Lokalne repozytorium Git. Kompletny kod jest w kod/."}
     candidates = [ROOT / f for f in FILES]
     for directory in DIRS:

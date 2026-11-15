@@ -1,13 +1,13 @@
 """Desktop interface. Uses the same simulation and policies as the experiments."""
 from collections import deque
+from dataclasses import replace
 from enum import Enum
 import math
 import os
 from pathlib import Path
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 import pygame
-from .agents import QAgent, RandomAgent, Tracker, encode
-from .config import Config
+from .agents import QAgent, RandomAgent, Tracker
 from .physics import Pong
 
 
@@ -18,8 +18,8 @@ TEXT = (233, 242, 244)
 MUTED = (140, 163, 179)
 TEAL = (86, 231, 196)
 CORAL = (255, 145, 121)
-W, H = 1240, 800
-OX, OY = 44, 190
+W, H = 988, 680
+OX, OY = 44, 110
 
 
 class Scene(Enum):
@@ -37,7 +37,7 @@ class Game:
         self.canvas = pygame.Surface((W, H))
         self.fonts = {size: pygame.font.SysFont("Arial", size) for size in (14, 16, 18, 22, 28, 40, 64, 76)}
         self.agent = QAgent.load(model_path)
-        self.env = Pong(self.agent.cfg, seed)
+        self.env = Pong(replace(self.agent.cfg, max_steps=0), seed)
         self.tracker = Tracker()
         self.right_tracker = Tracker(side="right")
         self.random = RandomAgent(seed)
@@ -50,7 +50,6 @@ class Game:
         self.trail = deque(maxlen=22)
         self.accumulator = 0.0
         self.point_delay = .6
-        self.last_action = 0
         self.help = False
 
     def text(self, value, x, y, size=18, color=TEXT, center=False):
@@ -68,6 +67,7 @@ class Game:
         self.scene = Scene.PLAY
         self.point_delay = .6
         self.accumulator = 0.0
+        self.help = False
 
     def events(self):
         for event in pygame.event.get():
@@ -77,9 +77,12 @@ class Game:
                 continue
             key = event.key
             if key == pygame.K_ESCAPE:
-                if self.scene == Scene.MENU:
+                if self.help:
+                    self.help = False
+                elif self.scene == Scene.MENU:
                     return False
-                self.scene = Scene.MENU
+                else:
+                    self.scene = Scene.MENU
             elif key == pygame.K_RETURN:
                 if self.scene in (Scene.MENU, Scene.FINISHED):
                     self.new_match(False)
@@ -100,7 +103,7 @@ class Game:
         return True
 
     def update(self, dt):
-        if self.scene != Scene.PLAY:
+        if self.scene != Scene.PLAY or self.help:
             return
         if self.point_delay > 0:
             self.point_delay -= dt
@@ -122,7 +125,6 @@ class Game:
                 action = self.random.action(obs)
             else:
                 action = self.untrained.action(obs)
-            self.last_action = action
             result = self.env.step(action, left)
             self.trail.append((self.env.ball.x, self.env.ball.y))
             if result.done:
@@ -140,13 +142,9 @@ class Game:
     def draw(self):
         s = self.canvas
         s.fill(BG)
-        self.text("PONG", OX, 23, 64)
-        self.text("UCZĄCY SIĘ PRZECIWNIK", OX + 214, 48, 16, TEAL)
-        self.text("Projekt 01   /   Q-learning + fizyka", OX + 214, 73, 16, MUTED)
-        pygame.draw.line(s, LINE, (OX, 110), (W - OX, 110))
-        self.text("REGUŁA" if self.demo else "GRACZ", OX, 133, 14, CORAL)
-        self.text(self.policies[self.policy_index].upper(), 750, 133, 14, TEAL)
-        self.text(f"{self.score[0]:02}    :    {self.score[1]:02}", 494, 118, 40, center=True)
+        self.text("Reguła" if self.demo else "Gracz", OX, 45, 22, CORAL)
+        self.text(self.policies[self.policy_index], W - OX - 160, 45, 22, TEAL)
+        self.text(f"{self.score[0]}    :    {self.score[1]}", W / 2, 27, 40, center=True)
         pygame.draw.rect(s, FIELD, (OX, OY, 900, 500), border_radius=4)
         pygame.draw.rect(s, LINE, (OX, OY, 900, 500), 1, border_radius=4)
         for y in range(OY + 14, OY + 490, 23):
@@ -165,47 +163,30 @@ class Game:
         angle = self.env.elapsed * b.spin * 2
         pygame.draw.line(s, BG, (OX + b.x, OY + b.y),
                          (OX + b.x + 6 * math.cos(angle), OY + b.y + 6 * math.sin(angle)), 2)
-        x = 978
-        self.text("OBSERWACJA", x, 192, 14, MUTED)
-        self.text("Agent widzi piłkę", x, 220, 18)
-        self.text("i własną paletkę.", x, 245, 18)
-        pygame.draw.line(s, LINE, (x, 284), (1194, 284))
-        self.text("DECYZJA AGENTA", x, 307, 14, MUTED)
-        self.text({-1: "W górę", 0: "Zostań", 1: "W dół"}[self.last_action], x, 335, 28, TEAL)
-        self.text(f"Stan tablicy Q: {self.agent.state(self.env.observe())}", x, 380, 14, MUTED)
-        self.text("FIZYKA", x, 435, 14, MUTED)
-        self.text(f"Prędkość   {math.hypot(b.vx, b.vy):.0f} px/s", x, 465, 16)
-        self.text(f"Rotacja      {b.spin:+.2f}", x, 493, 16)
-        self.text(f"Odbicia      {self.env.hits}", x, 521, 16)
-        self.text("120 Hz symulacji", x, 575, 16, MUTED)
-        self.text("30 decyzji / sekundę", x, 600, 16, MUTED)
-        self.text("Mecz do 7 punktów", x, 649, 16, TEAL)
-        self.text("W / S  ruch", OX, 718, 16)
-        self.text("SPACJA  pauza", 215, 718, 16)
-        self.text("TAB  przeciwnik", 425, 718, 16)
-        self.text("D  demo", 645, 718, 16)
-        self.text("R  nowy mecz", 810, 718, 16)
-        self.text("ESC  menu", 1020, 718, 16)
-        self.text("Model wczytany z pliku. Podczas gry agent nie aktualizuje tablicy Q.", OX, 759, 14, MUTED)
-        if self.scene != Scene.PLAY:
+        self.text("Esc  menu       H  sterowanie", W / 2, 640, 16, MUTED, True)
+        if self.scene != Scene.PLAY or self.help:
             shade = pygame.Surface((900, 500), pygame.SRCALPHA)
             shade.fill((9, 17, 26, 235))
             s.blit(shade, (OX, OY))
-            if self.scene == Scene.MENU:
-                self.text("PONG", 494, 265, 76, center=True)
-                self.text("Człowiek kontra wyuczony agent", 494, 371, 28, TEAL, True)
-                self.text("ENTER   graj", 494, 448, 22, center=True)
-                self.text("D   demonstracja reguła kontra AI", 494, 493, 22, center=True)
-                self.text("W / S lub strzałki sterują lewą paletką", 494, 581, 18, MUTED, True)
+            if self.help:
+                self.text("Sterowanie", W / 2, OY + 55, 40, center=True)
+                self.text("W / S lub strzałki   ruch", W / 2, OY + 145, 22, center=True)
+                self.text("Spacja   pauza", W / 2, OY + 190, 22, center=True)
+                self.text("Tab   przeciwnik       D   demo", W / 2, OY + 235, 22, center=True)
+                self.text("R   nowy mecz       Esc   menu", W / 2, OY + 280, 22, center=True)
+                self.text("H   wróć", W / 2, OY + 385, 18, TEAL, True)
+            elif self.scene == Scene.MENU:
+                self.text("PONG", W / 2, OY + 85, 76, center=True)
+                self.text("Enter   graj", W / 2, OY + 230, 22, center=True)
+                self.text("D   demo", W / 2, OY + 280, 22, center=True)
+                self.text("H   sterowanie", W / 2, OY + 330, 18, MUTED, True)
             elif self.scene == Scene.PAUSE:
-                self.text("Pauza", 494, 345, 64, center=True)
-                self.text("SPACJA   wróć do gry", 494, 447, 22, TEAL, True)
+                self.text("Pauza", W / 2, OY + 150, 64, center=True)
+                self.text("Spacja   wznów", W / 2, OY + 255, 22, TEAL, True)
             else:
                 winner = self.policies[self.policy_index] if self.score[1] >= 7 else "Reguła" if self.demo else "Gracz"
-                self.text(f"Wygrywa: {winner}", 494, 345, 40, TEAL, True)
-                self.text("ENTER   nowy mecz", 494, 440, 22, center=True)
-        if self.help:
-            self.text("H   ukryj pomoc: agent po prawej, człowiek lub reguła po lewej", OX, 165, 14, MUTED)
+                self.text(f"Wygrywa: {winner}", W / 2, OY + 150, 40, TEAL, True)
+                self.text("Enter   nowy mecz", W / 2, OY + 250, 22, center=True)
         size = self.window.get_size()
         self.window.fill(BG)
         scale = min(size[0] / W, size[1] / H)

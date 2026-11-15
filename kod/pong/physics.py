@@ -157,7 +157,7 @@ class Pong:
                 break
         self.steps += 1
         terminated = winner != 0
-        truncated = not terminated and self.steps >= c.max_steps
+        truncated = not terminated and c.max_steps > 0 and self.steps >= c.max_steps
         self.done = terminated or truncated
         hit_delta = self.right_hits - previous_hits
         return Transition(float(winner) + .2 * hit_delta, terminated, truncated,

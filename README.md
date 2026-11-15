@@ -1,7 +1,7 @@
 # Projekt 1. Pong - przeciwnik uczący się grać
 
 **Zespół 1, poniedziałek 8:00-10:15.** Przedmiot: Sztuczna inteligencja w grach
-i rozszerzonej rzeczywistości. Wersja 1.0.1.
+i rozszerzonej rzeczywistości. Wersja 1.0.2.
 
 Gra 2D z tablicowym Q-learningiem, treningiem bez grafiki i zapisem wyuczonego
 modelu. Agent wybiera ruch w górę, postój albo ruch w dół. Wyniki porównano
@@ -34,8 +34,9 @@ py -3 -m venv .venv
 Po wejściu do gry naciśnij Enter. W/S lub strzałki sterują lewą paletką.
 Spacja wstrzymuje grę, Tab zmienia przeciwnika, D przełącza demonstrację,
 R rozpoczyna nowy mecz, Esc wraca do menu. Z menu Esc zamyka program.
-Mecz w interfejsie trwa do 7 punktów. Przekroczenie 20 sekund pojedynczej wymiany
-powoduje nowy serwis bez przyznania punktu.
+H wyświetla sterowanie i wstrzymuje rozgrywkę na czas czytania pomocy.
+Mecz w interfejsie trwa do 7 punktów. Wymiany w grze nie mają limitu czasu.
+Limit 20 sekund dotyczy wyłącznie treningu i oceny eksperymentalnej.
 
 ```bash
 python kod/main.py play --demo

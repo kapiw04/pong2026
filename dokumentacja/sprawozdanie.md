@@ -131,7 +131,7 @@ W ocenie sprawdzamy także agenta losowego, zerową tablicę Q i regułę po pra
 
 ## Miary i niepewność
 
-Mierzymy udział wygranych punktów, straty, remisy po 20 s, liczbę odbić obu paletek na punkt, czas trwania i udział decyzji z poleceniem ruchu. Dodatkowo liczymy wyniki bloków po 9 niezależnych punktów jako mecze laboratoryjne. Interfejs używa innej reguły: do 7 zdobytych punktów.
+Mierzymy udział wygranych punktów, straty, remisy po 20 s, liczbę odbić obu paletek na punkt, czas trwania i udział decyzji z poleceniem ruchu. Dodatkowo liczymy wyniki bloków po 9 niezależnych punktów jako mecze laboratoryjne. Interfejs używa innej reguły: do 7 zdobytych punktów, bez limitu czasu wymiany.
 
 Cały protokół zawiera 13950 punktów testu końcowego i trwał 4.5 min w zarejestrowanym środowisku, z maksymalnie trzema procesami trenującymi równolegle. Walidacja nie aktualizuje modelu. Wspólne ziarna zapewniają takie same serwisy, ale dalsze trajektorie zależą od strategii.
 
