@@ -1,6 +1,6 @@
 # Projekt 1. Pong - przeciwnik uczący się grać
 
-Zespół 1, poniedziałek 8:00-10:15. Wersja 1.1.1.
+Zespół 1, poniedziałek 8:00-10:15. Wersja 1.1.2.
 Przedmiot: Sztuczna inteligencja w grach i rozszerzonej rzeczywistości.
 
 Gra Pong z przeciwnikiem uczonym przez Q-learning. Agent steruje prawą
@@ -10,9 +10,9 @@ paletką. Trening działa bez grafiki, a gotowy model jest dołączony do projek
 
 | Osoba | Zakres |
 | --- | --- |
-| Artur Zamorowski | Symulacja, fizyka i kolizje |
-| Kacper Wojtowicz | Agent, trening i eksperymenty |
-| Rafał Wybraniec | Interfejs i dokumentacja |
+| Artur Zamorowski | Ruch paletek, dyskretyzacja stanu i instrukcja uruchomienia |
+| Kacper Wojtowicz | Odbicia piłki, Q-learning i analiza wyników |
+| Rafał Wybraniec | Interfejs gry, trening agenta i opracowanie sprawozdania |
 
 ## Uruchomienie
 

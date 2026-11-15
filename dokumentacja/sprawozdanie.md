@@ -13,9 +13,9 @@ Rys. 1. Gra w trybie demonstracji. Wyuczony agent steruje prawą paletką.
 
 | Osoba | Odpowiedzialność |
 | --- | --- |
-| Artur Zamorowski | Symulacja, model fizyki i kolizje. |
-| Kacper Wojtowicz | Q-learning, reprezentacja stanu i eksperymenty. |
-| Rafał Wybraniec | Interfejs i dokumentacja. |
+| Artur Zamorowski | Ruch paletek, dyskretyzacja stanu i instrukcja uruchomienia. |
+| Kacper Wojtowicz | Odbicia piłki, Q-learning i analiza wyników. |
+| Rafał Wybraniec | Interfejs gry, trening agenta i opracowanie sprawozdania. |
 
 ---
 

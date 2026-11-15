@@ -171,9 +171,9 @@ def build_report(summary, manifest):
     cover += picture(ROOT / "wyniki/gra.png", 470,
                      "Rys. 1. Gra w trybie demonstracji. Wyuczony agent steruje prawą paletką.")
     cover += [table([["Osoba", "Odpowiedzialność"],
-                     ["Artur Zamorowski", "Symulacja, model fizyki i kolizje."],
-                     ["Kacper Wojtowicz", "Q-learning, reprezentacja stanu i eksperymenty."],
-                     ["Rafał Wybraniec", "Interfejs i dokumentacja."]], [143, 347]),
+                     ["Artur Zamorowski", "Ruch paletek, dyskretyzacja stanu i instrukcja uruchomienia."],
+                     ["Kacper Wojtowicz", "Odbicia piłki, Q-learning i analiza wyników."],
+                     ["Rafał Wybraniec", "Interfejs gry, trening agenta i opracowanie sprawozdania."]], [143, 347]),
               Spacer(1, 7)]
     pages.append(cover)
 
@@ -574,8 +574,9 @@ def build_slides(s, manifest):
     start("Ograniczenia, odpowiedzialność i rozwój", 8)
     body("Wynik zależy od przeciwnika i rozdzielczości stanu. Reguła podstawowa reaguje "
          "co 133 ms, agent co 33 ms. Osobny test wyrównuje częstość reakcji.", size=20)
-    body("Artur: fizyka i kolizje. Kacper: agent i eksperymenty.<br/>"
-         "Rafał: interfejs i dokumentacja.", 249, 20)
+    body("Artur: ruch paletek, dyskretyzacja stanu, instrukcja.<br/>"
+         "Kacper: odbicia piłki, Q-learning, analiza wyników.<br/>"
+         "Rafał: interfejs, trening agenta, sprawozdanie.", 249, 20)
     body("Dalsze prace: więcej ziaren strojenia, uwzględnienie rotacji w stanie "
          "i trening przeciw szybszej regule.", 357, 20)
     c.showPage()

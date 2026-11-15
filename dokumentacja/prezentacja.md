@@ -62,6 +62,6 @@ Test: 450 punktów. Główny wariant Q: średnio 62,8% wygranych, 3 ziarna treni
 
 Wynik zależy od przeciwnika i rozdzielczości stanu. Reguła podstawowa reaguje co 133 ms, agent co 33 ms. Osobny test wyrównuje częstość reakcji.
 
-Artur: fizyka i kolizje. Kacper: agent i eksperymenty.Rafał: interfejs i dokumentacja.
+Artur: ruch paletek, dyskretyzacja stanu, instrukcja.Kacper: odbicia piłki, Q-learning, analiza wyników.Rafał: interfejs, trening agenta, sprawozdanie.
 
 Dalsze prace: więcej ziaren strojenia, uwzględnienie rotacji w stanie i trening przeciw szybszej regule.
