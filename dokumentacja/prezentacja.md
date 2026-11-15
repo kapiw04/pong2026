@@ -20,7 +20,7 @@ Moduły: fizyka, agenci, eksperymenty, interfejs i ustawienia YAML.Model NPZ zaw
 
 Q(s,a) otrzymuje poprawkę alfa · [r + gamma · max Q(s',a') - Q(s,a)].
 
-Siatki kwadratowe 50 i 100 px. Porównanie z reprezentacją względną, która używa przybliżonego punktu dolotu i ma 810 stanów.
+Siatki kwadratowe 50 i 100 px.
 
 Każdy trening zaczyna od zerowej tablicy. Epsilon maleje z 0,9 do 0,05. Podczas testu epsilon = 0. Alfa = 0,12, gamma = 0,98.
 
@@ -62,6 +62,6 @@ Test: 450 punktów. Główny wariant Q: średnio 62,8% wygranych, 3 ziarna treni
 
 Wynik zależy od przeciwnika i rozdzielczości stanu. Reguła podstawowa reaguje co 133 ms, agent co 33 ms. Osobny test wyrównuje częstość reakcji.
 
-Artur: ruch paletek, dyskretyzacja stanu, instrukcja.Kacper: odbicia piłki, Q-learning, analiza wyników.Rafał: interfejs, trening agenta, sprawozdanie.
+Artur: budowa i trenowanie modelu.Kacper: silnik gry, interfejs graficzny, prezentacja.Rafał: sprawozdanie, dokumentacja, dostosowywanie parametrów.
 
 Dalsze prace: więcej ziaren strojenia, uwzględnienie rotacji w stanie i trening przeciw szybszej regule.

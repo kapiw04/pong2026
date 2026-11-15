@@ -41,16 +41,16 @@ def main():
     fig.savefig(OUT / "uczenie_slajd.png")
     plt.close(fig)
 
-    keys = ["untrained/0/standard", "random/0/standard", "tracking/0/standard", "q/7/standard",
+    keys = ["untrained/0/standard", "random/0/standard", "tracking/0/standard",
             "grid50/7/standard", "grid100/7/standard", "alpha035/7/standard",
             "no_movement_cost/7/standard"]
-    labels = ["Przed nauką", "Losowy", "Reguła", "Q, względny", "Siatka 50 px",
+    labels = ["Przed nauką", "Losowy", "Reguła", "Siatka 50 px",
               "Siatka 100 px", "Q, alfa 0,35", "Bez kosztu ruchu"]
     fig, ax = plt.subplots(figsize=(8.6, 3.8), layout="constrained")
     values = np.array([summary[k]["win_rate"] * 100 for k in keys])
     low = np.array([summary[k]["win_ci95"][0] * 100 for k in keys])
     high = np.array([summary[k]["win_ci95"][1] * 100 for k in keys])
-    ax.barh(labels[::-1], values[::-1], color=[COLORS[0]] * 5 + ["#8395a3"] * 3,
+    ax.barh(labels[::-1], values[::-1], color=[COLORS[0]] * 4 + ["#8395a3"] * 3,
             xerr=np.array([values - low, high - values])[:, ::-1], capsize=3,
             error_kw={"ecolor": "#243746", "elinewidth": 1})
     for y, value in enumerate(values[::-1]):

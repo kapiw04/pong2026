@@ -1,7 +1,7 @@
 mode: play
 
 play:
-  model: modele/pong_q.npz
+  model: modele/grid50_seed_7.npz
   demo: false
   seed: 2026
   frames: null
@@ -19,11 +19,11 @@ train:
     gamma: 0.98
     movement_cost: 0.001
     distance_cost: 0.02
-    encoder: relative
+
     cell: 50
 
 evaluate:
-  model: modele/pong_q.npz
+  model: modele/grid50_seed_7.npz
   policy: q
   points: 450
   seed_base: 2000000

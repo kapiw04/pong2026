@@ -10,9 +10,9 @@ paletką. Trening działa bez grafiki, a gotowy model jest dołączony do projek
 
 | Osoba | Zakres |
 | --- | --- |
-| Artur Zamorowski | Ruch paletek, dyskretyzacja stanu i instrukcja uruchomienia |
-| Kacper Wojtowicz | Odbicia piłki, Q-learning i analiza wyników |
-| Rafał Wybraniec | Interfejs gry, trening agenta i opracowanie sprawozdania |
+| Artur Zamorowski | Budowa i trenowanie modelu |
+| Kacper Wojtowicz | Silnik gry, interfejs graficzny i przygotowanie prezentacji |
+| Rafał Wybraniec | Sprawozdanie, dokumentacja i dostosowywanie parametrów |
 
 ## Uruchomienie
 
@@ -87,12 +87,3 @@ python narzedzia/wykresy.py
 python narzedzia/dokumenty.py
 ```
 
-Paczka do oddania to `dist/projekt_1_pon_8.zip`. Zawiera cały kod, modele,
-wyniki i PDF-y. Wersję wskazuje `wersja.json`, a zawartość można sprawdzić
-przez `SUMY_SHA256.txt`. Repozytorium Git jest lokalne.
-
-## Źródła
-
-- [Watkins i Dayan, Q-learning, 1992](https://www.gatsby.ucl.ac.uk/~dayan/papers/cjch.pdf).
-- [Ng, Harada i Russell, reward shaping, 1999](https://people.eecs.berkeley.edu/~pabbeel/cs287-fa09/readings/NgHaradaRussell-shaping-ICML1999.pdf).
-- [Dokumentacja Pygame-ce](https://pyga.me/docs/).

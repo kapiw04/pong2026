@@ -171,9 +171,9 @@ def build_report(summary, manifest):
     cover += picture(ROOT / "wyniki/gra.png", 470,
                      "Rys. 1. Gra w trybie demonstracji. Wyuczony agent steruje prawą paletką.")
     cover += [table([["Osoba", "Odpowiedzialność"],
-                     ["Artur Zamorowski", "Ruch paletek, dyskretyzacja stanu i instrukcja uruchomienia."],
-                     ["Kacper Wojtowicz", "Odbicia piłki, Q-learning i analiza wyników."],
-                     ["Rafał Wybraniec", "Interfejs gry, trening agenta i opracowanie sprawozdania."]], [143, 347]),
+                     ["Artur Zamorowski", "Budowa i trenowanie modelu."],
+                     ["Kacper Wojtowicz", "Silnik gry, interfejs graficzny i przygotowanie prezentacji."],
+                     ["Rafał Wybraniec", "Sprawozdanie i dostosowywanie parametrów."]], [143, 347]),
               Spacer(1, 7)]
     pages.append(cover)
 
@@ -241,12 +241,11 @@ def build_report(summary, manifest):
           "Zmienia dynamikę gotowego modelu i służy do oceny jego przenoszenia.")])
 
     pages.append([title("3. Stan agenta i uczenie"),
-        p("Tablicowy Q-learning [1] przypisuje każdemu stanowi trzy wartości, po jednej "
-          "dla każdej akcji. Wszystkie wartości zaczynają od zera. Agent poznaje skutki "
-          "własnych ruchów podczas kolejnych epizodów."),
-        code("Q[s,a] = Q[s,a] + alfa * (r + gamma*max(Q[s_next])\n"
+        p("Tablicowy Q-learning przypisuje każdemu stanowi trzy wartości, po jednej "
+          "dla każdej akcji. Wszystkie wartości zaczynają od zera."),
+        code("Q[s,a] = Q[s,a] + alfa * (r + gamma*max_a'(Q[s_next,a'])\n"
              "                         - Q[s,a])\n"
-             "Dla zdobytego/straconego punktu: max(Q[s_next]) = 0"),
+             "Dla zdobytego/straconego punktu: max_a'(Q[s_next,a']) = 0"),
         p("Współczynnik alfa wynosi 0,12, a gamma 0,98. Epsilon maleje liniowo z 0,9 "
           "do 0,05 przez pierwsze 85% epizodów i pozostaje na tym poziomie. Podczas oceny "
           "epsilon wynosi zero. Przy równych wartościach agent wybiera postój. Po zdobyciu "
@@ -254,18 +253,31 @@ def build_report(summary, manifest):
           "limicie czasu nadal ją uwzględnia."),
         table([["Reprezentacja", "Opis", "Liczba stanów"],
                ["Siatka 50 px", "18 kolumn, 19 różnic wierszy, znak vx, 3 kategorie vy i 3 kategorie prędkości paletki", "6156"],
-               ["Siatka 100 px", "9 kolumn, 9 różnic wierszy, pozostałe cechy jak wyżej", "1458"],
-               ["Względna, demonstracja", "15 przedziałów błędu dolotu, 3 pasy x, znak vx, 3 prędkości paletki i 3 strefy jej położenia", "810"]], [102, 320, 68]),
-        p("Oprócz siatek sprawdzono stan oparty na przewidywanym miejscu dolotu. "
-          "Agent oblicza je z bieżących x, y, vx i vy, uwzględniając odbicia od ścian. "
-          "Gdy piłka oddala się, odnosi ustawienie paletki do środka boiska. Prognoza "
-          "pomija rotację. Porównanie tej reprezentacji z siatką obejmuje zatem dwie "
-          "zmiany: mniejszą tablicę i dodatkową informację o spodziewanym torze piłki."),
+               ["Siatka 100 px", "9 kolumn, 9 różnic wierszy, pozostałe cechy jak wyżej", "1458"]], [102, 320, 68]),
+        p("Komórka Q[s,a] to oszacowana wartość akcji a (w górę, postój, w dół) w stanie s. "
+          "Wiersze odpowiadają stanom z tabeli, dla siatki 50 px 18·19·2·3·3 = 6156. Obok "
+          "zapisywana jest tablica liczników odwiedzin o tym samym kształcie. Decyzję zawsze "
+          "wybiera argmax wartości Q w bieżącym stanie. Wyjątkiem jest trening, w którym "
+          "z prawdopodobieństwem epsilon akcja jest losowa."),
+        p("Następny stan s' nie wynika z tablicy Q ani z wyboru agenta, lecz z symulatora. "
+          "Wybrana akcja trwa 4 kroki fizyki (1/30 s), w których symulator przesuwa obie paletki "
+          "i piłkę oraz rozstrzyga odbicia. Nową obserwację ta sama funkcja dyskretyzacji zamienia "
+          "na numer wiersza s'. Ta sama para (s,a) może prowadzić do różnych s', bo zależy to "
+          "też od przeciwnika i pominiętej rotacji. Piłka przebywa w jednej decyzji 14-27 px, "
+          "a komórka ma 50 px, więc wiele przejść kończy się w tym samym wierszu. Takie "
+          "przejścia nie aktualizują tablicy, chyba że kończą punkt."),
+        p("Po przejściu s → s' zmienia się wyłącznie komórka Q[s,a] wykonanej akcji, według "
+          "wzoru powyżej. Pozostałe akcje w s się nie zmieniają. W chwili aktualizacji akcja w s' "
+          "nie jest jeszcze wybrana, więc max_a' bierze najlepszą z trzech wartości Q[s',a'], "
+          "tylko ją odczytując. Zakładamy więc, że od s' agent zagra zachłannie, także gdy w "
+          "treningu wylosuje inną akcję. Informacja cofa się o jeden stan na aktualizację: "
+          "nagroda za punkt trafia najpierw do ostatniej pary (s,a), w kolejnych epizodach do "
+          "poprzedniej, pomniejszona o gamma, i tak wzdłuż łańcucha s0 → s1 → ... → punkt."),
         sub("System nagród i kar"),
         p("Nagroda bazowa to +1 za zdobyty punkt, -1 za stratę i +0,2 za własne odbicie. "
           "Dodajemy koszt 0,001 za polecenie ruchu. W wariancie ze wskazówkami występuje "
           "koszt 0,02·|błąd dolotu|/500 oraz składnik gamma·Phi(s') - Phi(s), gdzie "
-          "Phi(s) = -|błąd dolotu|/500, a Phi stanu terminalnego jest zerowe [2]."),
+          "Phi(s) = -|błąd dolotu|/500, a Phi stanu terminalnego jest zerowe."),
         p("Koszty ruchu i błędu ustawienia oraz nagroda za odbicie wpływają na to, "
           "czego uczy się agent. Nagroda za odbicia może skłaniać go do przedłużania "
           "wymian. Skuteczność oceniamy osobno na podstawie "
@@ -282,7 +294,7 @@ def build_report(summary, manifest):
                ["Analiza ustawień", "Siatka 50 px, siatka 100 px, alfa 0,35 i brak kosztu ruchu. Każda zmiana: ziarno 7"],
                ["Walidacja", "180 punktów, ziarna 1000000-1000179. Ocena przed nauką i po 1000, 5000, 10000, 20000 epizodów"],
                ["Test końcowy", "450 punktów na model i scenariusz, ziarna 2000000-2000449"],
-               ["Model demonstracyjny", "Z góry wskazane ziarno 7 i reprezentacja względna. Bez wyboru na podstawie testu"]], [110, 380]),
+               ["Model demonstracyjny", "Z góry wskazane ziarno 7 i siatka 50 px. Bez wyboru na podstawie testu"]], [110, 380]),
         sub("Przeciwnik i strategie odniesienia"),
         p("Reguła steruje paletką w stronę bieżącej wysokości piłki z martwą strefą 12 px. "
           "Aktualizuje akcję co 4 decyzje, czyli co 133 ms. Paletki obu stron mają tę samą "
@@ -389,14 +401,7 @@ def build_report(summary, manifest):
           "przeciwnika: wyrównanie czasu reakcji mocno obniża udział wygranych. "
           "W kolejnym eksperymencie warto trenować przeciw szybszej regule i "
           "powtórzyć porównanie nagród dla większej liczby ziaren. Dopiero potem "
-          "można ocenić, które wskazówki i parametry warto zachować."),
-        sub("Źródła i wykorzystane rozwiązania"),
-        p('[1] C. Watkins, P. Dayan, <link href="https://www.gatsby.ucl.ac.uk/~dayan/papers/cjch.pdf" color="#148a76">Q-learning</link>, Machine Learning 8, 279-292, 1992.<br/>'
-          '[2] A. Ng, D. Harada, S. Russell, <link href="https://people.eecs.berkeley.edu/~pabbeel/cs287-fa09/readings/NgHaradaRussell-shaping-ICML1999.pdf" color="#148a76">Policy invariance under reward transformations</link>, ICML, 1999.<br/>'
-          '[3] <link href="https://pyga.me/docs/" color="#148a76">Oficjalna dokumentacja Pygame-ce</link>.<br/>'
-          '[4] Instrukcja realizacji projektu i instrukcja oddania dostarczone przez prowadzącego.<br/>'
-          'Z literatury przyjęto algorytm i ideę kształtowania nagrody. Środowisko, protokół, '
-          'reprezentacje stanu i interfejs zaimplementowano w repozytorium.', True)])
+          "można ocenić, które wskazówki i parametry warto zachować.")])
 
     story = []
     for i, page in enumerate(pages):
@@ -534,8 +539,7 @@ def build_slides(s, manifest):
 
     start("Q-learning i dyskretyzacja", 3)
     body("Q(s,a) otrzymuje poprawkę alfa · [r + gamma · max Q(s',a') - Q(s,a)].", size=23)
-    body("Siatki kwadratowe 50 i 100 px. Porównanie z reprezentacją względną, "
-         "która używa przybliżonego punktu dolotu i ma 810 stanów.", 225)
+    body("Siatki kwadratowe 50 i 100 px.", 225)
     body("Każdy trening zaczyna od zerowej tablicy. Epsilon maleje z 0,9 do 0,05. "
          "Podczas testu epsilon = 0. Alfa = 0,12, gamma = 0,98.", 340)
     body("Źródło metody: Watkins i Dayan, Q-learning, 1992. Szczegóły w sprawozdaniu.", 462, 12)
@@ -574,9 +578,9 @@ def build_slides(s, manifest):
     start("Ograniczenia, odpowiedzialność i rozwój", 8)
     body("Wynik zależy od przeciwnika i rozdzielczości stanu. Reguła podstawowa reaguje "
          "co 133 ms, agent co 33 ms. Osobny test wyrównuje częstość reakcji.", size=20)
-    body("Artur: ruch paletek, dyskretyzacja stanu, instrukcja.<br/>"
-         "Kacper: odbicia piłki, Q-learning, analiza wyników.<br/>"
-         "Rafał: interfejs, trening agenta, sprawozdanie.", 249, 20)
+    body("Artur: budowa i trenowanie modelu.<br/>"
+         "Kacper: silnik gry, interfejs graficzny, prezentacja.<br/>"
+         "Rafał: sprawozdanie, dokumentacja, dostosowywanie parametrów.", 249, 20)
     body("Dalsze prace: więcej ziaren strojenia, uwzględnienie rotacji w stanie "
          "i trening przeciw szybszej regule.", 357, 20)
     c.showPage()

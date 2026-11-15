@@ -5,7 +5,9 @@ import math
 import os
 from pathlib import Path
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
+os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 import pygame
+pygame.mixer.pre_init(frequency=0, size=0, channels=0, buffer=0)
 from .agents import QAgent, RandomAgent, Tracker
 from .physics import Pong
 

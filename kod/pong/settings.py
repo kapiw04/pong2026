@@ -14,7 +14,7 @@ FIELDS = {
     "experiment": {"protocol": str, "output": str, "models": str},
 }
 AGENT_FIELDS = {"alpha": (int, float), "gamma": (int, float), "movement_cost": (int, float),
-                "distance_cost": (int, float), "encoder": str, "cell": int}
+                "distance_cost": (int, float), "cell": int}
 REQUIRED = {"play": {"model"}, "train": {"episodes", "seed", "output"},
             "evaluate": {"model", "points", "seed_base"},
             "experiment": {"protocol", "output", "models"}}
@@ -77,8 +77,7 @@ def load_settings(path=SETTINGS_PATH):
     for key in ("movement_cost", "distance_cost"):
         if key in options and options[key] < 0:
             raise ConfigurationError(f"train.agent.{key} nie może być ujemne.")
-    if options.get("encoder", "relative") not in ("relative", "grid"):
-        raise ConfigurationError("train.agent.encoder musi mieć wartość relative albo grid.")
+
     checkpoints = training.get("checkpoints", [])
     if any(type(n) is not int or n <= 0 or n > training.get("episodes", n) for n in checkpoints):
         raise ConfigurationError("train.checkpoints wymaga dodatnich liczb do wartości episodes.")

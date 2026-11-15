@@ -13,9 +13,9 @@ Rys. 1. Gra w trybie demonstracji. Wyuczony agent steruje prawą paletką.
 
 | Osoba | Odpowiedzialność |
 | --- | --- |
-| Artur Zamorowski | Ruch paletek, dyskretyzacja stanu i instrukcja uruchomienia. |
-| Kacper Wojtowicz | Odbicia piłki, Q-learning i analiza wyników. |
-| Rafał Wybraniec | Interfejs gry, trening agenta i opracowanie sprawozdania. |
+| Artur Zamorowski | Budowa i trenowanie modelu. |
+| Kacper Wojtowicz | Silnik gry, interfejs graficzny i przygotowanie prezentacji. |
+| Rafał Wybraniec | Sprawozdanie i dostosowywanie parametrów. |
 
 ---
 
@@ -84,12 +84,12 @@ Test simple_physics wyłącza zależność odbicia od miejsca trafienia, ruchu p
 
 # 3. Stan agenta i uczenie
 
-Tablicowy Q-learning [1] przypisuje każdemu stanowi trzy wartości, po jednej dla każdej akcji. Wszystkie wartości zaczynają od zera. Agent poznaje skutki własnych ruchów podczas kolejnych epizodów.
+Tablicowy Q-learning przypisuje każdemu stanowi trzy wartości, po jednej dla każdej akcji. Wszystkie wartości zaczynają od zera.
 
 ```
-Q[s,a] = Q[s,a] + alfa * (r + gamma*max(Q[s_next])
+Q[s,a] = Q[s,a] + alfa * (r + gamma*max_a'(Q[s_next,a'])
                          - Q[s,a])
-Dla zdobytego/straconego punktu: max(Q[s_next]) = 0
+Dla zdobytego/straconego punktu: max_a'(Q[s_next,a']) = 0
 ```
 
 Współczynnik alfa wynosi 0,12, a gamma 0,98. Epsilon maleje liniowo z 0,9 do 0,05 przez pierwsze 85% epizodów i pozostaje na tym poziomie. Podczas oceny epsilon wynosi zero. Przy równych wartościach agent wybiera postój. Po zdobyciu lub stracie punktu aktualizacja pomija wartość następnego stanu. Przy samym limicie czasu nadal ją uwzględnia.
@@ -98,13 +98,16 @@ Współczynnik alfa wynosi 0,12, a gamma 0,98. Epsilon maleje liniowo z 0,9 do 0
 | --- | --- | --- |
 | Siatka 50 px | 18 kolumn, 19 różnic wierszy, znak vx, 3 kategorie vy i 3 kategorie prędkości paletki | 6156 |
 | Siatka 100 px | 9 kolumn, 9 różnic wierszy, pozostałe cechy jak wyżej | 1458 |
-| Względna, demonstracja | 15 przedziałów błędu dolotu, 3 pasy x, znak vx, 3 prędkości paletki i 3 strefy jej położenia | 810 |
 
-Oprócz siatek sprawdzono stan oparty na przewidywanym miejscu dolotu. Agent oblicza je z bieżących x, y, vx i vy, uwzględniając odbicia od ścian. Gdy piłka oddala się, odnosi ustawienie paletki do środka boiska. Prognoza pomija rotację. Porównanie tej reprezentacji z siatką obejmuje zatem dwie zmiany: mniejszą tablicę i dodatkową informację o spodziewanym torze piłki.
+Komórka Q[s,a] to oszacowana wartość akcji a (w górę, postój, w dół) w stanie s. Wiersze odpowiadają stanom z tabeli, dla siatki 50 px 18·19·2·3·3 = 6156. Obok zapisywana jest tablica liczników odwiedzin o tym samym kształcie. Decyzję zawsze wybiera argmax wartości Q w bieżącym stanie. Wyjątkiem jest trening, w którym z prawdopodobieństwem epsilon akcja jest losowa.
+
+Następny stan s' nie wynika z tablicy Q ani z wyboru agenta, lecz z symulatora. Wybrana akcja trwa 4 kroki fizyki (1/30 s), w których symulator przesuwa obie paletki i piłkę oraz rozstrzyga odbicia. Nową obserwację ta sama funkcja dyskretyzacji zamienia na numer wiersza s'. Ta sama para (s,a) może prowadzić do różnych s', bo zależy to też od przeciwnika i pominiętej rotacji. Piłka przebywa w jednej decyzji 14-27 px, a komórka ma 50 px, więc wiele przejść kończy się w tym samym wierszu. Takie przejścia nie aktualizują tablicy, chyba że kończą punkt.
+
+Po przejściu s → s' zmienia się wyłącznie komórka Q[s,a] wykonanej akcji, według wzoru powyżej. Pozostałe akcje w s się nie zmieniają. W chwili aktualizacji akcja w s' nie jest jeszcze wybrana, więc max_a' bierze najlepszą z trzech wartości Q[s',a'], tylko ją odczytując. Zakładamy więc, że od s' agent zagra zachłannie, także gdy w treningu wylosuje inną akcję. Informacja cofa się o jeden stan na aktualizację: nagroda za punkt trafia najpierw do ostatniej pary (s,a), w kolejnych epizodach do poprzedniej, pomniejszona o gamma, i tak wzdłuż łańcucha s0 → s1 → ... → punkt.
 
 ## System nagród i kar
 
-Nagroda bazowa to +1 za zdobyty punkt, -1 za stratę i +0,2 za własne odbicie. Dodajemy koszt 0,001 za polecenie ruchu. W wariancie ze wskazówkami występuje koszt 0,02·|błąd dolotu|/500 oraz składnik gamma·Phi(s') - Phi(s), gdzie Phi(s) = -|błąd dolotu|/500, a Phi stanu terminalnego jest zerowe [2].
+Nagroda bazowa to +1 za zdobyty punkt, -1 za stratę i +0,2 za własne odbicie. Dodajemy koszt 0,001 za polecenie ruchu. W wariancie ze wskazówkami występuje koszt 0,02·|błąd dolotu|/500 oraz składnik gamma·Phi(s') - Phi(s), gdzie Phi(s) = -|błąd dolotu|/500, a Phi stanu terminalnego jest zerowe.
 
 Koszty ruchu i błędu ustawienia oraz nagroda za odbicie wpływają na to, czego uczy się agent. Nagroda za odbicia może skłaniać go do przedłużania wymian. Skuteczność oceniamy osobno na podstawie wygranych, strat i długości wymian.
 
@@ -121,7 +124,7 @@ Dane powstają w symulatorze. Każdy trening rozpoczyna zerową tablicę Q i uż
 | Analiza ustawień | Siatka 50 px, siatka 100 px, alfa 0,35 i brak kosztu ruchu. Każda zmiana: ziarno 7 |
 | Walidacja | 180 punktów, ziarna 1000000-1000179. Ocena przed nauką i po 1000, 5000, 10000, 20000 epizodów |
 | Test końcowy | 450 punktów na model i scenariusz, ziarna 2000000-2000449 |
-| Model demonstracyjny | Z góry wskazane ziarno 7 i reprezentacja względna. Bez wyboru na podstawie testu |
+| Model demonstracyjny | Z góry wskazane ziarno 7 i siatka 50 px. Bez wyboru na podstawie testu |
 
 ## Przeciwnik i strategie odniesienia
 
@@ -205,13 +208,5 @@ Obserwacja i agregacja stanów pomijają część informacji potrzebnych do peł
 ## Wnioski i dalsze prace
 
 Q-learning nauczył paletkę utrzymywania piłki i poprawił wynik względem modelu przed nauką. Największym ograniczeniem pozostaje zależność od przeciwnika: wyrównanie czasu reakcji mocno obniża udział wygranych. W kolejnym eksperymencie warto trenować przeciw szybszej regule i powtórzyć porównanie nagród dla większej liczby ziaren. Dopiero potem można ocenić, które wskazówki i parametry warto zachować.
-
-## Źródła i wykorzystane rozwiązania
-
-[1] C. Watkins, P. Dayan, Q-learning, Machine Learning 8, 279-292, 1992.
-[2] A. Ng, D. Harada, S. Russell, Policy invariance under reward transformations, ICML, 1999.
-[3] Oficjalna dokumentacja Pygame-ce.
-[4] Instrukcja realizacji projektu i instrukcja oddania dostarczone przez prowadzącego.
-Z literatury przyjęto algorytm i ideę kształtowania nagrody. Środowisko, protokół, reprezentacje stanu i interfejs zaimplementowano w repozytorium.
 
 ---

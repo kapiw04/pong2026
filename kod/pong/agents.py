@@ -8,10 +8,7 @@ from .config import Config
 
 
 ACTIONS = (-1, 0, 1)
-ERROR_EDGES = (-300, -200, -130, -85, -50, -25, -8, 8, 25, 50, 85, 130, 200, 300)
-STATE_SHAPE = (15, 3, 2, 3, 3)
-N_STATES = int(np.prod(STATE_SHAPE))
-ENCODER_VERSION = 4
+ENCODER_VERSION = 5
 
 
 def target_y(obs, config=None):
@@ -26,19 +23,6 @@ def target_y(obs, config=None):
     return c.ball_radius + (unfolded if unfolded <= span else 2 * span - unfolded)
 
 
-def encode(obs, config=None):
-    c = config or Config()
-    x, y, vx, vy, py, pvy, spin = obs
-    parts = (bisect_right(ERROR_EDGES, (target_y(obs, c) - py) * 500 / c.height),
-             min(2, max(0, int(3 * x / c.width))), int(vx > 0),
-             bisect_right((-80, 80), pvy),
-             0 if py < c.height * .25 else 2 if py > c.height * .75 else 1)
-    index = 0
-    for part, size in zip(parts, STATE_SHAPE):
-        index = index * size + part
-    return index
-
-
 def potential(obs, config=None):
     c = config or Config()
     return -abs(target_y(obs, c) - obs[4]) / c.height
@@ -46,14 +30,14 @@ def potential(obs, config=None):
 
 class QAgent:
     def __init__(self, seed=0, config=None, alpha=.12, gamma=.98, shaping=True,
-                 movement_cost=.001, distance_cost=.02, encoder="relative", cell=50):
+                 movement_cost=.001, distance_cost=.02, cell=50):
         self.cfg = config or Config()
-        self.encoder, self.cell = encoder, cell
-        if encoder not in ("relative", "grid") or cell <= 0:
-            raise ValueError("Invalid encoder or grid cell size")
+        self.cell = cell
+        if cell <= 0:
+            raise ValueError("Invalid grid cell size")
         self.grid_rows = math.ceil(self.cfg.height / cell)
         self.grid_cols = math.ceil(self.cfg.width / cell)
-        n = N_STATES if encoder == "relative" else self.grid_cols * (2 * self.grid_rows - 1) * 18
+        n = self.grid_cols * (2 * self.grid_rows - 1) * 18
         self.q = np.zeros((n, 3), dtype=np.float32)
         self.visits = np.zeros((n, 3), dtype=np.uint32)
         self.rng = random.Random(seed)
@@ -62,8 +46,6 @@ class QAgent:
         self.metadata = {}
 
     def state(self, obs):
-        if self.encoder == "relative":
-            return encode(obs, self.cfg)
         x, y, vx, vy, py, pvy, _ = obs
         col = min(self.grid_cols - 1, max(0, int(x / self.cell)))
         by = min(self.grid_rows - 1, max(0, int(y / self.cell)))
@@ -84,6 +66,8 @@ class QAgent:
 
     def update(self, obs, action, reward, next_obs, terminated):
         s, ns = self.state(obs), self.state(next_obs)
+        if s == ns and not terminated:
+            return
         a = action + 1
         reward -= self.movement_cost * abs(action)
         if self.shaping:
@@ -103,7 +87,7 @@ class QAgent:
         path.parent.mkdir(parents=True, exist_ok=True)
         meta = {"encoder_version": ENCODER_VERSION, "config": self.cfg.to_dict(),
                 "alpha": self.alpha, "gamma": self.gamma, "shaping": self.shaping,
-                "encoder": self.encoder, "cell": self.cell,
+                "cell": self.cell,
                 "movement_cost": self.movement_cost, "distance_cost": self.distance_cost,
                 **self.metadata, **(metadata or {})}
         np.savez_compressed(path, q=self.q, visits=self.visits,
@@ -114,13 +98,14 @@ class QAgent:
 
         with np.load(path, allow_pickle=False) as data:
             meta = json.loads(str(data["metadata"]))
-            if meta["encoder_version"] != ENCODER_VERSION:
+
+            if meta["encoder_version"] not in (4, 5):
                 raise ValueError("Incompatible state encoder in model.")
             q, visits = data["q"], data["visits"]
             agent = cls(config=Config(**meta["config"]), alpha=meta["alpha"],
                         gamma=meta["gamma"], shaping=meta["shaping"],
                         movement_cost=meta["movement_cost"], distance_cost=meta["distance_cost"],
-                        encoder=meta["encoder"], cell=meta["cell"])
+                        cell=meta["cell"])
             if q.shape != agent.q.shape or visits.shape != q.shape or not np.isfinite(q).all():
                 raise ValueError("Invalid model arrays.")
             agent.q[:] = q
