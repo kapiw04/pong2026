@@ -64,7 +64,7 @@ Paletka przyspiesza i hamuje, więc agent musi rozpocząć ruch przed nadejście
 
 ## Przebieg pojedynczego kroku
 
-W każdym kroku symulator przesuwa paletki i ogranicza ich pozycje do boiska. Potem oblicza wpływ rotacji na prędkość piłki, przesuwa ją i rozpatruje kolizje. Jeśli piłka przekroczy powierzchnię odbicia, zachowuje pozostałą część drogi po przeciwnej stronie. Dzięki temu odbicie nie zatrzymuje jej na przeszkodzie.
+W każdym kroku symulator przesuwa paletki i ogranicza ich pozycje do boiska. Potem oblicza wpływ rotacji na prędkość piłki, przesuwa ją i rozpatruje kolizje. Jeśli piłka przekroczy powierzchnię odbicia, zachowuje pozostałą część drogi po przeciwnej stronie. Piłka kontynuuje ruch po odbiciu.
 
 ```
 u = clip((y_pilki - y_paletki) / 44, -1, 1)
@@ -74,9 +74,9 @@ vy_out = clip(speed*sin(0.96*u) + 0.22*vp,
 abs(vx_out) = sqrt(speed**2 - vy_out**2)
 ```
 
-Rotacja wynosi clip(5·v_p/460 + 2·u, -7, 7). W locie składnik pionowy zmienia się o 0,13·spin·v_x·dt. Potem normalizujemy wektor do poprzedniej szybkości. Tor zakrzywia się, lecz sam efekt rotacji nie dodaje energii. Odbicie od poziomej ściany zmienia znak i zmniejsza rotację współczynnikiem 0,8.
+Rotacja wynosi clip(5·v_p/460 + 2·u, -7, 7). W locie składnik pionowy zmienia się o 0,13·spin·v_x·dt. Potem normalizujemy wektor do poprzedniej szybkości. Rotacja zmienia kierunek ruchu przy zachowaniu szybkości. Odbicie od poziomej ściany zmienia znak i zmniejsza rotację współczynnikiem 0,8.
 
-Sprawdzenie przecięcia czoła paletki wykrywa kontakt także wtedy, gdy piłka przeskoczy tę płaszczyznę w jednym kroku. Pionowy zasięg kontaktu obejmuje dodatkowo promień piłki, co upraszcza kolizje przy narożnikach. Parametry fizyki dobrano do gry zręcznościowej. Nie odwzorowują pomiarów rzeczywistej piłki.
+Sprawdzenie przecięcia czoła paletki wykrywa kontakt także wtedy, gdy piłka przeskoczy tę płaszczyznę w jednym kroku. Pionowy zasięg kontaktu obejmuje dodatkowo promień piłki, co upraszcza kolizje przy narożnikach. Parametry fizyki dobrano do gry zręcznościowej.
 
 Test simple_physics wyłącza zależność odbicia od miejsca trafienia, ruchu paletki i rotacji. Pozostawia odbicia od ścian oraz wzrost szybkości. Zmienia dynamikę gotowego modelu i służy do oceny jego przenoszenia.
 
@@ -106,7 +106,7 @@ Oprócz siatek sprawdzono stan oparty na przewidywanym miejscu dolotu. Agent obl
 
 Nagroda bazowa to +1 za zdobyty punkt, -1 za stratę i +0,2 za własne odbicie. Dodajemy koszt 0,001 za polecenie ruchu. W wariancie ze wskazówkami występuje koszt 0,02·|błąd dolotu|/500 oraz składnik gamma·Phi(s') - Phi(s), gdzie Phi(s) = -|błąd dolotu|/500, a Phi stanu terminalnego jest zerowe [2].
 
-Koszty ruchu i błędu ustawienia oraz nagroda za odbicie wpływają na to, czego uczy się agent. Może on preferować dłuższą wymianę, nawet jeśli nie prowadzi ona do punktu. Z tego powodu skuteczność oceniamy osobno na podstawie wygranych, strat i długości wymian.
+Koszty ruchu i błędu ustawienia oraz nagroda za odbicie wpływają na to, czego uczy się agent. Nagroda za odbicia może skłaniać go do przedłużania wymian. Skuteczność oceniamy osobno na podstawie wygranych, strat i długości wymian.
 
 ---
 
@@ -143,7 +143,7 @@ Przedziały Wilsona 95% opisują zmienność wyniku na nowych serwisach przy ust
 
 ![Ilustracja](../wyniki/uczenie.png)
 
-Rys. 2. Walidacja zamrożonych modeli. Linie: średnia z 3 treningów. Cieniowanie: minimum i maksimum, nie przedział ufności.
+Rys. 2. Walidacja zamrożonych modeli. Linie: średnia z 3 treningów. Cieniowanie pokazuje zakres od minimum do maksimum z 3 treningów.
 
 | Polityka / ziarno | Wygrane | Straty | Remisy | Odbicia / punkt |
 | --- | --- | --- | --- | --- |
@@ -154,11 +154,11 @@ Rys. 2. Walidacja zamrożonych modeli. Linie: średnia z 3 treningów. Cieniowan
 | Q / 19 | 288 (64,0%) | 4 | 158 | 8,27 |
 | Q / 41 | 301 (66,9%) | 0 | 149 | 8,20 |
 
-Średni odsetek wygranych po uczeniu ze wskazówkami wynosi 62,8%, a odchylenie standardowe między treningami 4,8 pkt proc. Po wyłączeniu wskazówek w nagrodzie wynik wynosi średnio 69,0%. W tych próbach dodatkowe wskazówki nie poprawiły końcowego odsetka wygranych. Wykres pokazuje też spadki między punktami kontrolnymi. Dłuższy trening przy stałej alfie nie gwarantuje lepszego wyniku.
+Średni odsetek wygranych po uczeniu ze wskazówkami wynosi 62,8%, a odchylenie standardowe między treningami 4,8 pkt proc. Po wyłączeniu wskazówek w nagrodzie wynik wynosi średnio 69,0%. Wyższy wynik uzyskały modele z wyłączonymi wskazówkami w nagrodzie. Wykres pokazuje też spadki między punktami kontrolnymi.
 
 Dla modelu demonstracyjnego uzyskano 259 wygranych, 11 strat i 180 remisów. Jego udział wygranych to 57,6%, z przedziałem Wilsona [52,9%; 62,0%]. W blokach po 9 punktów wygrał 50 z 50 meczów laboratoryjnych. Surowe wiersze są w evaluation.csv.
 
-Wynik modelu po nauce jest wyższy niż zerowej tablicy i reguły porównawczej. Duża liczba remisów pokazuje jednak, że agent często utrzymuje piłkę do końca limitu zamiast zdobyć punkt.
+Wynik modelu po nauce jest wyższy niż zerowej tablicy i reguły porównawczej. Duża liczba remisów pokazuje, że agent często utrzymuje piłkę do końca limitu czasu.
 
 ---
 
@@ -177,15 +177,15 @@ Rys. 3. Modele z ziarnem 7 oraz strategie odniesienia. Wąsy: Wilson 95%. Warian
 
 Przy tym samym budżecie siatka 50 px uzyskała 32,7%, a siatka 100 px 15,3% wygranych punktów. Wariant z alfą 0,35 uzyskał 56,2%. Dokładniejsza siatka wypadła lepiej w tej próbie. Do wyboru ustawienia na tej podstawie potrzebne byłyby kolejne ziarna treningu.
 
-Udział poleceń ruchu wyniósł 65,7% przy koszcie 0,001 oraz 62,3% bez niego. Udział wygranych bez kosztu wyniósł 58,4%. Koszt nie ograniczył liczby poleceń ruchu w tym przebiegu. Jego zakładany efekt nie pojawił się w pomiarze. Sam udział poleceń ruchu nie mierzy częstotliwości zmiany kierunku.
+Udział poleceń ruchu wyniósł 65,7% przy koszcie 0,001 oraz 62,3% bez niego. Udział wygranych bez kosztu wyniósł 58,4%. W tej próbie model z kosztem wydawał więcej poleceń ruchu. Częstotliwość zmiany kierunku wymaga osobnego pomiaru.
 
-Szybsza piłka zwiększa średni udział wygranych Q do 89,0%, bo utrudnia również zadanie regule. Szybka reakcja przeciwnika obniża wynik Q do 18,5%. Rezultat zależy więc silnie od czasu reakcji przeciwnika. Testy używają gotowych tablic i oceniają przenoszenie. Nie mierzą przewagi trenowania z fizyką rozszerzoną nad trenowaniem z prostą.
+Szybsza piłka zwiększa średni udział wygranych Q do 89,0%, bo utrudnia również zadanie regule. Szybka reakcja przeciwnika obniża wynik Q do 18,5%. Rezultat zależy więc silnie od czasu reakcji przeciwnika. Testy używają gotowych tablic i oceniają przenoszenie między wariantami fizyki.
 
 ---
 
 # 7. Odtwarzalność i wnioski
 
-Do gry i oceny wystarcza dostarczony model modele/pong_q.npz. Zawiera tablicę Q, liczniki odwiedzin i metadane JSON. Nie wymaga ponownego uczenia ani pobierania zewnętrznych wag. Plik manifest.json rejestruje konfigurację, środowisko, ziarna i sumy SHA-256 modeli.
+Do gry i oceny służy model modele/pong_q.npz. Zawiera tablicę Q, liczniki odwiedzin i metadane JSON. Plik manifest.json rejestruje konfigurację, środowisko, ziarna i sumy SHA-256 modeli.
 
 W konfiguracja.yaml ustaw mode na play, train, evaluate albo experiment, a następnie uruchom program bez argumentów. W trybie play pole demo włącza pokaz reguła kontra agent. Sekcja experiment wskazuje protokół YAML oraz osobne katalogi dla odtworzonych wyników i modeli.
 
@@ -200,7 +200,7 @@ Przebiegi treningowe CSV zawierają epsilon, wynik, liczbę odbić i kroków ka�
 
 Ponowne uruchomienie oceny dołączonego modelu odtwarza wyniki 450 punktów ze scenariusza standard. Gra korzysta z zamrożonej tablicy Q. Zrzuty dokumentują rzeczywiste renderowanie interfejsu Pygame.
 
-Obserwacja i agregacja stanów pomijają część informacji potrzebnych do pełnego modelu Markowa. Prognoza dolotu zakłada lot liniowy. Przeciwnik podstawowy ma wolniejszą reakcję od agenta, a budżet strojenia obejmuje tylko po jednym ziarnie dla kilku ustawień. Pomiary dotyczą środowiska lokalnego; nie potwierdzają ręcznej gry na wszystkich systemach operacyjnych.
+Obserwacja i agregacja stanów pomijają część informacji potrzebnych do pełnego modelu Markowa. Prognoza dolotu zakłada lot liniowy. Przeciwnik podstawowy ma wolniejszą reakcję od agenta, a budżet strojenia obejmuje tylko po jednym ziarnie dla kilku ustawień. Pomiary dotyczą zapisanego środowiska lokalnego.
 
 ## Wnioski i dalsze prace
 

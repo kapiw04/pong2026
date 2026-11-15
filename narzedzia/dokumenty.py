@@ -222,7 +222,7 @@ def build_report(summary, manifest):
         p("W każdym kroku symulator przesuwa paletki i ogranicza ich pozycje do boiska. "
           "Potem oblicza wpływ rotacji na prędkość piłki, przesuwa ją i rozpatruje kolizje. "
           "Jeśli piłka przekroczy powierzchnię odbicia, zachowuje pozostałą część drogi "
-          "po przeciwnej stronie. Dzięki temu odbicie nie zatrzymuje jej na przeszkodzie."),
+          "po przeciwnej stronie. Piłka kontynuuje ruch po odbiciu."),
         code("u = clip((y_pilki - y_paletki) / 44, -1, 1)\n"
              "speed = min(800, 1.06 * hypot(vx, vy))\n"
              "vy_out = clip(speed*sin(0.96*u) + 0.22*vp,\n"
@@ -230,12 +230,12 @@ def build_report(summary, manifest):
              "abs(vx_out) = sqrt(speed**2 - vy_out**2)"),
         p("Rotacja wynosi clip(5·v_p/460 + 2·u, -7, 7). W locie składnik pionowy "
           "zmienia się o 0,13·spin·v_x·dt. Potem normalizujemy wektor do poprzedniej "
-          "szybkości. Tor zakrzywia się, lecz sam efekt rotacji nie dodaje energii. "
+          "szybkości. Rotacja zmienia kierunek ruchu przy zachowaniu szybkości. "
           "Odbicie od poziomej ściany zmienia znak i zmniejsza rotację współczynnikiem 0,8."),
         p("Sprawdzenie przecięcia czoła paletki wykrywa kontakt także wtedy, gdy piłka "
           "przeskoczy tę płaszczyznę w jednym kroku. Pionowy zasięg kontaktu obejmuje "
           "dodatkowo promień piłki, co upraszcza kolizje przy narożnikach. Parametry fizyki "
-          "dobrano do gry zręcznościowej. Nie odwzorowują pomiarów rzeczywistej piłki."),
+          "dobrano do gry zręcznościowej."),
         p("Test simple_physics wyłącza zależność odbicia od miejsca trafienia, ruchu "
           "paletki i rotacji. Pozostawia odbicia od ścian oraz wzrost szybkości. "
           "Zmienia dynamikę gotowego modelu i służy do oceny jego przenoszenia.")])
@@ -267,8 +267,8 @@ def build_report(summary, manifest):
           "koszt 0,02·|błąd dolotu|/500 oraz składnik gamma·Phi(s') - Phi(s), gdzie "
           "Phi(s) = -|błąd dolotu|/500, a Phi stanu terminalnego jest zerowe [2]."),
         p("Koszty ruchu i błędu ustawienia oraz nagroda za odbicie wpływają na to, "
-          "czego uczy się agent. Może on preferować dłuższą wymianę, nawet jeśli nie "
-          "prowadzi ona do punktu. Z tego powodu skuteczność oceniamy osobno na podstawie "
+          "czego uczy się agent. Nagroda za odbicia może skłaniać go do przedłużania "
+          "wymian. Skuteczność oceniamy osobno na podstawie "
           "wygranych, strat i długości wymian.")])
 
     pages.append([title("4. Protokół eksperymentów"),
@@ -313,15 +313,14 @@ def build_report(summary, manifest):
     pages.append([title("5. Wyniki uczenia"),
         *picture(ROOT / "wyniki/uczenie.png", 490,
                  "Rys. 2. Walidacja zamrożonych modeli. Linie: średnia z 3 treningów. "
-                 "Cieniowanie: minimum i maksimum, nie przedział ufności."),
+                 "Cieniowanie pokazuje zakres od minimum do maksimum z 3 treningów."),
         table(result_rows, [110, 116, 68, 68, 128]),
         Spacer(1, 10),
         p(f"Średni odsetek wygranych po uczeniu ze wskazówkami wynosi {percent(q_mean)}, "
           f"a odchylenie standardowe między treningami {number(100*q_sd)} pkt proc. "
           f"Po wyłączeniu wskazówek w nagrodzie wynik wynosi średnio {percent(no_mean)}. "
-          "W tych próbach dodatkowe wskazówki nie poprawiły końcowego odsetka wygranych. "
-          "Wykres pokazuje też spadki między punktami kontrolnymi. Dłuższy trening "
-          "przy stałej alfie nie gwarantuje lepszego wyniku."),
+          "Wyższy wynik uzyskały modele z wyłączonymi wskazówkami w nagrodzie. "
+          "Wykres pokazuje też spadki między punktami kontrolnymi."),
         p(f"Dla modelu demonstracyjnego uzyskano {primary['wins']} wygranych, "
           f"{primary['losses']} strat i {primary['draws']} remisów. Jego udział wygranych "
           f"to {percent(primary['win_rate'])}, z przedziałem Wilsona "
@@ -329,8 +328,8 @@ def build_report(summary, manifest):
           f"W blokach po 9 punktów wygrał {primary['match_wins']} z {primary['matches']} "
           "meczów laboratoryjnych. Surowe wiersze są w evaluation.csv."),
         p("Wynik modelu po nauce jest wyższy niż zerowej tablicy i reguły porównawczej. "
-          "Duża liczba remisów pokazuje jednak, że agent często utrzymuje piłkę "
-          "do końca limitu zamiast zdobyć punkt.")])
+          "Duża liczba remisów pokazuje, że agent często utrzymuje piłkę "
+          "do końca limitu czasu.")])
 
     scen_rows = [["Scenariusz", "Q, średnia 3 ziaren", "Reguła"]]
     for scene, label in [("standard", "Standard"), ("fast", "Piłka +20%"),
@@ -354,19 +353,16 @@ def build_report(summary, manifest):
           "na tej podstawie potrzebne byłyby kolejne ziarna treningu."),
         p(f"Udział poleceń ruchu wyniósł {percent(primary['move_rate'])} przy koszcie 0,001 "
           f"oraz {percent(no_move['move_rate'])} bez niego. Udział wygranych bez kosztu "
-          f"wyniósł {percent(no_move['win_rate'])}. Koszt nie ograniczył liczby poleceń "
-          "ruchu w tym przebiegu. Jego zakładany efekt nie pojawił się w pomiarze. "
-          "Sam udział poleceń ruchu nie mierzy częstotliwości zmiany kierunku."),
+          f"wyniósł {percent(no_move['win_rate'])}. W tej próbie model z kosztem "
+          "wydawał więcej poleceń ruchu. Częstotliwość zmiany kierunku wymaga osobnego pomiaru."),
         p(f"Szybsza piłka zwiększa średni udział wygranych Q do {percent(fast_rate)}, bo utrudnia "
           f"również zadanie regule. Szybka reakcja przeciwnika obniża wynik Q do {percent(reaction_rate)}. "
           "Rezultat zależy więc silnie od czasu reakcji przeciwnika. Testy używają "
-          "gotowych tablic i oceniają przenoszenie. Nie mierzą przewagi trenowania "
-          "z fizyką rozszerzoną nad trenowaniem z prostą.")])
+          "gotowych tablic i oceniają przenoszenie między wariantami fizyki.")])
 
     pages.append([title("7. Odtwarzalność i wnioski"),
-        p("Do gry i oceny wystarcza dostarczony model modele/pong_q.npz. Zawiera tablicę Q, "
-          "liczniki odwiedzin i metadane JSON. Nie wymaga ponownego uczenia ani pobierania "
-          "zewnętrznych wag. Plik manifest.json rejestruje konfigurację, środowisko, ziarna "
+        p("Do gry i oceny służy model modele/pong_q.npz. Zawiera tablicę Q, "
+          "liczniki odwiedzin i metadane JSON. Plik manifest.json rejestruje konfigurację, środowisko, ziarna "
           "i sumy SHA-256 modeli."),
         p("W konfiguracja.yaml ustaw mode na play, train, evaluate albo experiment, "
           "a następnie uruchom program bez argumentów. W trybie play pole demo włącza "
@@ -386,8 +382,7 @@ def build_report(summary, manifest):
         p("Obserwacja i agregacja stanów pomijają część informacji potrzebnych do pełnego "
           "modelu Markowa. Prognoza dolotu zakłada lot liniowy. Przeciwnik podstawowy "
           "ma wolniejszą reakcję od agenta, a budżet strojenia obejmuje tylko po jednym "
-          "ziarnie dla kilku ustawień. Pomiary dotyczą środowiska lokalnego; nie potwierdzają "
-          "ręcznej gry na wszystkich systemach operacyjnych."),
+          "ziarnie dla kilku ustawień. Pomiary dotyczą zapisanego środowiska lokalnego."),
         sub("Wnioski i dalsze prace"),
         p("Q-learning nauczył paletkę utrzymywania piłki i poprawił wynik względem "
           "modelu przed nauką. Największym ograniczeniem pozostaje zależność od "
@@ -430,8 +425,7 @@ def build_instructions():
         code("py -3 -m venv .venv\n"
              ".venv\\Scripts\\python.exe -m pip install -r uruchomienie/wymagania.txt\n"
              ".venv\\Scripts\\python.exe kod\\main.py"),
-        p("W Windows nie trzeba aktywować środowiska. W kolejnych poleceniach zamiast "
-          "python można używać .venv\\Scripts\\python.exe."),
+        p("W kolejnych poleceniach na Windows używaj .venv\\Scripts\\python.exe."),
         sub("3. Pierwszy przykład bez uczenia"),
         code("python kod/main.py"),
         p("Program czyta konfiguracja.yaml. Domyślny mode: play uruchamia grę z "
@@ -458,7 +452,7 @@ def build_instructions():
               "python narzedzia/wykresy.py\npython narzedzia/dokumenty.py"),
          p("Pakiet deweloperski jest potrzebny tylko do regenerowania dokumentów. "
            "Gra wymaga NumPy, Pygame-ce i PyYAML. Skrypty korzystają z dołączonych CSV "
-           "i JSON. Generowanie PDF nie uruchamia treningu."),
+           "i JSON."),
          sub("6. Oddanie projektu"),
          p("Gotowa paczka to dist/projekt_1_pon_8.zip "
            "z jednym katalogiem projekt_1_pon_8/. Zawiera kod, modele, wyniki, "
@@ -471,8 +465,7 @@ def build_instructions():
            "z sesji graficznej."),
          p("Wersje sprawdzone lokalnie: Python 3.13.12, NumPy 2.3.5, Pygame-ce 2.5.8, "
            "PyYAML 6.0.3, Matplotlib 3.11.2, ReportLab 5.1.0 i pypdf 7.1.0. "
-           "Lista ta opisuje środowisko pomiarów; nie oznacza testu ręcznej gry "
-           "na wszystkich systemach.", True)]]
+           "To środowisko użyte do pomiarów.", True)]]
     story = []
     for i, page in enumerate(pages):
         if i:
@@ -569,7 +562,7 @@ def build_slides(s, manifest):
 
     start("Uczenie w trzech niezależnych przebiegach", 6)
     img("uczenie_slajd.png", 48, 112, 820)
-    body("Średnia z 3 treningów. Cieniowanie: minimum i maksimum, nie przedział ufności.", 478, 15)
+    body("Średnia z 3 treningów. Cieniowanie pokazuje zakres od minimum do maksimum.", 478, 15)
     c.showPage()
 
     start("Wyniki testu i porównanie ustawień", 7)

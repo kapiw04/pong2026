@@ -1,6 +1,6 @@
 # Projekt 1. Pong - przeciwnik uczący się grać
 
-Zespół 1, poniedziałek 8:00-10:15. Wersja 1.1.0.
+Zespół 1, poniedziałek 8:00-10:15. Wersja 1.1.1.
 Przedmiot: Sztuczna inteligencja w grach i rozszerzonej rzeczywistości.
 
 Gra Pong z przeciwnikiem uczonym przez Q-learning. Agent steruje prawą
@@ -38,7 +38,7 @@ py -3 -m venv .venv
 
 Enter rozpoczyna grę. W/S lub strzałki sterują paletką, Spacja włącza pauzę,
 H pokazuje sterowanie, Esc wraca do menu. Mecz trwa do 7 punktów.
-Wymiany w grze nie mają limitu czasu.
+Wymiany w grze trwają do zdobycia punktu.
 
 ## Konfiguracja
 

@@ -7,7 +7,7 @@ Parametry pozostały takie same po przeniesieniu konfiguracji do YAML.
   ziarno treningu, scenariusz i ziarno serwisu. `winner` to 1 dla prawej strony,
   -1 dla lewej i 0 przy limicie czasu. `hits` liczy odbicia obu paletek.
 - `learning.csv`: 50 ocen walidacyjnych, po 180 punktów każda. `win_rate`
-  pochodzi z oceny bez eksploracji, a nie z nagród w trakcie nauki.
+  pochodzi z oceny bez eksploracji.
 - `summary.json`: agregaty każdego modelu i scenariusza, przedziały Wilsona 95%,
   czas, odbicia, udział poleceń ruchu i wyniki bloków po 9 punktów.
 - `manifest.json`: protokół, parametry środowiska, wersje, czas i sumy modeli.
@@ -22,8 +22,8 @@ uczenia, strategie odniesienia jeden zestaw 450 serwisów.
 
 Reguła podstawowa wydaje nowe polecenie co 133 ms, a agent Q co 33 ms.
 Przy przyspieszeniu reakcji przeciwnika udział wygranych głównego wariantu
-spada średnio do 18,5%. Nie należy przenosić wyniku ze standardu na dowolny
-poziom trudności. Zwiększenie szybkości piłki pomaga w tym teście agentowi,
+spada średnio do 18,5%. Wynik zależy od czasu reakcji przeciwnika.
+Zwiększenie szybkości piłki pomaga w tym teście agentowi,
 ponieważ utrudnia śledzenie także jego przeciwnikowi.
 
 Wykres uczenia pokazuje średnią oraz zakres minimum-maksimum z 3 ziaren.

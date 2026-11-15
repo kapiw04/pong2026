@@ -1,7 +1,7 @@
 # Wyuczone tablice Q
 
 `pong_q.npz` jest kopią `q_seed_7.npz`, wskazaną w protokole przed oceną testową.
-Ten model wczytuje gra. Nie wymaga treningu ani pobierania dodatkowych plików.
+Ten model jest gotowy do gry.
 
 Każdy plik NPZ zawiera tablicę `q` typu float32, liczniki `visits` oraz
 metadane JSON: wersję enkodera, parametry fizyki, nagrody, ziarno i budżet.
@@ -18,9 +18,8 @@ Wczytywanie wyłącza pickle. Sumy SHA-256 zapisano w `wyniki/manifest.json`.
 
 Każdy trening obejmuje 20 000 epizodów od zerowej tablicy. Odpowiadający mu
 plik `.training.csv` zawiera wszystkie epizody, także te zakończone limitem.
-`base_reward` oznacza wyłącznie punkt i odbicia. Nie obejmuje kosztów ani
-składnika potencjałowego używanego wewnątrz aktualizacji Q.
+`base_reward` oznacza wyłącznie punkt i odbicia.
 
 Warianty siatkowe używają względnej różnicy wierszy piłki i paletki. Wariant
 demonstracyjny korzysta z liniowej prognozy dolotu, która jest dodatkową cechą
-opracowaną dla tego środowiska. Nie jest to porównanie samego rozmiaru tablic.
+opracowaną dla tego środowiska. Porównanie obejmuje rozmiar tablicy i użyte cechy stanu.

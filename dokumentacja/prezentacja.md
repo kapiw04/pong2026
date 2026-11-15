@@ -50,7 +50,7 @@ Pygame-ce/SDL i własna fizyka. Gotowy model działa bez ponownego treningu.
 
 ![uczenie_slajd.png](wyniki/uczenie_slajd.png)
 
-Średnia z 3 treningów. Cieniowanie: minimum i maksimum, nie przedział ufności.
+Średnia z 3 treningów. Cieniowanie pokazuje zakres od minimum do maksimum.
 
 # 7. Wyniki testu i porównanie ustawień
 
