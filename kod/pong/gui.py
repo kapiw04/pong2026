@@ -1,0 +1,234 @@
+"""Desktop interface. Uses the same simulation and policies as the experiments."""
+from collections import deque
+from enum import Enum
+import math
+import os
+from pathlib import Path
+os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
+import pygame
+from .agents import QAgent, RandomAgent, Tracker, encode
+from .config import Config
+from .physics import Pong
+
+
+BG = (12, 19, 29)
+FIELD = (17, 28, 40)
+LINE = (40, 56, 70)
+TEXT = (233, 242, 244)
+MUTED = (140, 163, 179)
+TEAL = (86, 231, 196)
+CORAL = (255, 145, 121)
+W, H = 1240, 800
+OX, OY = 44, 190
+
+
+class Scene(Enum):
+    MENU = 0
+    PLAY = 1
+    PAUSE = 2
+    FINISHED = 3
+
+
+class Game:
+    def __init__(self, model_path, demo=False, seed=2026):
+        pygame.init()
+        self.window = pygame.display.set_mode((W, H), pygame.RESIZABLE)
+        pygame.display.set_caption("PONG / Q-learning")
+        self.canvas = pygame.Surface((W, H))
+        self.fonts = {size: pygame.font.SysFont("Arial", size) for size in (14, 16, 18, 22, 28, 40, 64, 76)}
+        self.agent = QAgent.load(model_path)
+        self.env = Pong(self.agent.cfg, seed)
+        self.tracker = Tracker()
+        self.right_tracker = Tracker(side="right")
+        self.random = RandomAgent(seed)
+        self.untrained = QAgent()
+        self.demo = demo
+        self.scene = Scene.PLAY if demo else Scene.MENU
+        self.policies = ["Q-learning", "Reguła", "Losowy", "Bez uczenia"]
+        self.policy_index = 0
+        self.score = [0, 0]
+        self.trail = deque(maxlen=22)
+        self.accumulator = 0.0
+        self.point_delay = .6
+        self.last_action = 0
+        self.help = False
+
+    def text(self, value, x, y, size=18, color=TEXT, center=False):
+        surf = self.fonts[size].render(str(value), True, color)
+        rect = surf.get_rect(midtop=(x, y)) if center else surf.get_rect(topleft=(x, y))
+        self.canvas.blit(surf, rect)
+        return rect
+
+    def new_match(self, demo=None):
+        if demo is not None:
+            self.demo = demo
+        self.score[:] = [0, 0]
+        self.env.reset()
+        self.trail.clear()
+        self.scene = Scene.PLAY
+        self.point_delay = .6
+        self.accumulator = 0.0
+
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type != pygame.KEYDOWN:
+                continue
+            key = event.key
+            if key == pygame.K_ESCAPE:
+                if self.scene == Scene.MENU:
+                    return False
+                self.scene = Scene.MENU
+            elif key == pygame.K_RETURN:
+                if self.scene in (Scene.MENU, Scene.FINISHED):
+                    self.new_match(False)
+            elif key == pygame.K_d:
+                self.new_match(not self.demo if self.scene != Scene.MENU else True)
+            elif key == pygame.K_r:
+                self.new_match()
+            elif key == pygame.K_SPACE:
+                if self.scene == Scene.PLAY:
+                    self.scene = Scene.PAUSE
+                elif self.scene == Scene.PAUSE:
+                    self.scene = Scene.PLAY
+            elif key == pygame.K_TAB:
+                self.policy_index = (self.policy_index + 1) % len(self.policies)
+                self.new_match()
+            elif key == pygame.K_h:
+                self.help = not self.help
+        return True
+
+    def update(self, dt):
+        if self.scene != Scene.PLAY:
+            return
+        if self.point_delay > 0:
+            self.point_delay -= dt
+            return
+        self.accumulator += min(dt, .1)
+        keys = pygame.key.get_pressed()
+        while self.accumulator >= self.env.cfg.decision_dt:
+            self.accumulator -= self.env.cfg.decision_dt
+            if self.demo:
+                left = self.tracker.action(self.env)
+            else:
+                left = int(keys[pygame.K_s] or keys[pygame.K_DOWN]) - int(keys[pygame.K_w] or keys[pygame.K_UP])
+            obs = self.env.observe()
+            if self.policy_index == 0:
+                action = self.agent.action(obs)
+            elif self.policy_index == 1:
+                action = self.right_tracker.action(self.env)
+            elif self.policy_index == 2:
+                action = self.random.action(obs)
+            else:
+                action = self.untrained.action(obs)
+            self.last_action = action
+            result = self.env.step(action, left)
+            self.trail.append((self.env.ball.x, self.env.ball.y))
+            if result.done:
+                if result.winner:
+                    self.score[0 if result.winner == -1 else 1] += 1
+                if max(self.score) >= 7:
+                    self.scene = Scene.FINISHED
+                else:
+                    self.env.reset()
+                    self.trail.clear()
+                    self.point_delay = .8
+                self.accumulator = 0.0
+                break
+
+    def draw(self):
+        s = self.canvas
+        s.fill(BG)
+        self.text("PONG", OX, 23, 64)
+        self.text("UCZĄCY SIĘ PRZECIWNIK", OX + 214, 48, 16, TEAL)
+        self.text("Projekt 01   /   Q-learning + fizyka", OX + 214, 73, 16, MUTED)
+        pygame.draw.line(s, LINE, (OX, 110), (W - OX, 110))
+        self.text("REGUŁA" if self.demo else "GRACZ", OX, 133, 14, CORAL)
+        self.text(self.policies[self.policy_index].upper(), 750, 133, 14, TEAL)
+        self.text(f"{self.score[0]:02}    :    {self.score[1]:02}", 494, 118, 40, center=True)
+        pygame.draw.rect(s, FIELD, (OX, OY, 900, 500), border_radius=4)
+        pygame.draw.rect(s, LINE, (OX, OY, 900, 500), 1, border_radius=4)
+        for y in range(OY + 14, OY + 490, 23):
+            pygame.draw.line(s, LINE, (OX + 450, y), (OX + 450, y + 10), 2)
+        c, b = self.env.cfg, self.env.ball
+        for i, (x, y) in enumerate(self.trail):
+            intensity = (i + 1) / max(1, len(self.trail))
+            color = tuple(int(FIELD[j] + (TEAL[j] - FIELD[j]) * intensity * .3) for j in range(3))
+            pygame.draw.circle(s, color, (OX + x, OY + y), max(2, int(5 * intensity)))
+        for x, p, color in [(c.paddle_x, self.env.left, CORAL),
+                             (c.width - c.paddle_x, self.env.right, TEAL)]:
+            pygame.draw.rect(s, color, (OX + x - c.paddle_width / 2,
+                             OY + p.y - c.paddle_height / 2, c.paddle_width,
+                             c.paddle_height), border_radius=5)
+        pygame.draw.circle(s, TEXT, (OX + b.x, OY + b.y), c.ball_radius)
+        angle = self.env.elapsed * b.spin * 2
+        pygame.draw.line(s, BG, (OX + b.x, OY + b.y),
+                         (OX + b.x + 6 * math.cos(angle), OY + b.y + 6 * math.sin(angle)), 2)
+        x = 978
+        self.text("OBSERWACJA", x, 192, 14, MUTED)
+        self.text("Agent widzi piłkę", x, 220, 18)
+        self.text("i własną paletkę.", x, 245, 18)
+        pygame.draw.line(s, LINE, (x, 284), (1194, 284))
+        self.text("DECYZJA AGENTA", x, 307, 14, MUTED)
+        self.text({-1: "W górę", 0: "Zostań", 1: "W dół"}[self.last_action], x, 335, 28, TEAL)
+        self.text(f"Stan tablicy Q: {encode(self.env.observe())}", x, 380, 14, MUTED)
+        self.text("FIZYKA", x, 435, 14, MUTED)
+        self.text(f"Prędkość   {math.hypot(b.vx, b.vy):.0f} px/s", x, 465, 16)
+        self.text(f"Rotacja      {b.spin:+.2f}", x, 493, 16)
+        self.text(f"Odbicia      {self.env.hits}", x, 521, 16)
+        self.text("120 Hz symulacji", x, 575, 16, MUTED)
+        self.text("30 decyzji / sekundę", x, 600, 16, MUTED)
+        self.text("Mecz do 7 punktów", x, 649, 16, TEAL)
+        self.text("W / S  ruch", OX, 718, 16)
+        self.text("SPACJA  pauza", 215, 718, 16)
+        self.text("TAB  przeciwnik", 425, 718, 16)
+        self.text("D  demo", 645, 718, 16)
+        self.text("R  nowy mecz", 810, 718, 16)
+        self.text("ESC  menu", 1020, 718, 16)
+        self.text("Model wczytany z pliku. Podczas gry agent nie aktualizuje tablicy Q.", OX, 759, 14, MUTED)
+        if self.scene != Scene.PLAY:
+            shade = pygame.Surface((900, 500), pygame.SRCALPHA)
+            shade.fill((9, 17, 26, 235))
+            s.blit(shade, (OX, OY))
+            if self.scene == Scene.MENU:
+                self.text("PONG", 494, 265, 76, center=True)
+                self.text("Człowiek kontra wyuczony agent", 494, 371, 28, TEAL, True)
+                self.text("ENTER   graj", 494, 448, 22, center=True)
+                self.text("D   demonstracja reguła kontra AI", 494, 493, 22, center=True)
+                self.text("W / S lub strzałki sterują lewą paletką", 494, 581, 18, MUTED, True)
+            elif self.scene == Scene.PAUSE:
+                self.text("Pauza", 494, 345, 64, center=True)
+                self.text("SPACJA   wróć do gry", 494, 447, 22, TEAL, True)
+            else:
+                winner = self.policies[self.policy_index] if self.score[1] >= 7 else "Reguła" if self.demo else "Gracz"
+                self.text(f"Wygrywa: {winner}", 494, 345, 40, TEAL, True)
+                self.text("ENTER   nowy mecz", 494, 440, 22, center=True)
+        if self.help:
+            self.text("H   ukryj pomoc: agent po prawej, człowiek lub reguła po lewej", OX, 165, 14, MUTED)
+        size = self.window.get_size()
+        self.window.fill(BG)
+        scale = min(size[0] / W, size[1] / H)
+        scaled = pygame.transform.smoothscale(s, (round(W * scale), round(H * scale)))
+        self.window.blit(scaled, ((size[0] - scaled.get_width()) // 2,
+                                  (size[1] - scaled.get_height()) // 2))
+        pygame.display.flip()
+
+
+def run(model_path, demo=False, seed=2026, frames=None, screenshot=None):
+    game = Game(model_path, demo, seed)
+    clock = pygame.time.Clock()
+    count = 0
+    try:
+        while game.events():
+            dt = 1 / 60 if frames else clock.tick(60) / 1000
+            game.update(dt)
+            game.draw()
+            count += 1
+            if frames and count >= frames:
+                break
+        if screenshot:
+            Path(screenshot).parent.mkdir(parents=True, exist_ok=True)
+            pygame.image.save(game.canvas, screenshot)
+    finally:
+        pygame.quit()

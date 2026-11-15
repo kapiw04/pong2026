@@ -1,0 +1,25 @@
+{
+  "projekt": 1,
+  "zespol": 1,
+  "dzien": "pon",
+  "godzina": "8",
+  "termin_opis": "poniedziałek, 8:00-10:15",
+  "osoby": [
+    {
+      "imie_nazwisko": "Artur Zamorowski",
+      "odpowiedzialnosc": "Symulacja gry, model fizyki i obsługa kolizji; omówienie tych elementów podczas demonstracji.",
+      "udzial": "1/3"
+    },
+    {
+      "imie_nazwisko": "Kacper Wojtowicz",
+      "odpowiedzialnosc": "Agent Q-learning, reprezentacja stanu i protokół eksperymentów; interpretacja wyników uczenia.",
+      "udzial": "1/3"
+    },
+    {
+      "imie_nazwisko": "Rafał Wybraniec",
+      "odpowiedzialnosc": "Interfejs gry, dokumentacja i przygotowanie materiałów do oddania.",
+      "udzial": "1/3"
+    }
+  ],
+  "charakter_podzialu": "Uzgodniony podział odpowiedzialności organizacyjnej."
+}
