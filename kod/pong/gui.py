@@ -172,7 +172,7 @@ class Game:
         pygame.draw.line(s, LINE, (x, 284), (1194, 284))
         self.text("DECYZJA AGENTA", x, 307, 14, MUTED)
         self.text({-1: "W górę", 0: "Zostań", 1: "W dół"}[self.last_action], x, 335, 28, TEAL)
-        self.text(f"Stan tablicy Q: {encode(self.env.observe())}", x, 380, 14, MUTED)
+        self.text(f"Stan tablicy Q: {self.agent.state(self.env.observe())}", x, 380, 14, MUTED)
         self.text("FIZYKA", x, 435, 14, MUTED)
         self.text(f"Prędkość   {math.hypot(b.vx, b.vy):.0f} px/s", x, 465, 16)
         self.text(f"Rotacja      {b.spin:+.2f}", x, 493, 16)

@@ -1,0 +1,560 @@
+{
+  "q/19/standard": {
+    "points": 450,
+    "wins": 288,
+    "losses": 4,
+    "draws": 158,
+    "win_rate": 0.64,
+    "win_ci95": [
+      0.5946382672998645,
+      0.6829917234185039
+    ],
+    "mean_hits": 8.268888888888888,
+    "mean_seconds": 14.617740735555556,
+    "move_rate": 0.530936476022142,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/19/fast": {
+    "points": 450,
+    "wins": 411,
+    "losses": 10,
+    "draws": 29,
+    "win_rate": 0.9133333333333333,
+    "win_ci95": [
+      0.8837150629083059,
+      0.9359544334983054
+    ],
+    "mean_hits": 7.475555555555555,
+    "mean_seconds": 11.428833344444444,
+    "move_rate": 0.5789149956944274,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/19/simple_physics": {
+    "points": 450,
+    "wins": 254,
+    "losses": 6,
+    "draws": 190,
+    "win_rate": 0.5644444444444444,
+    "win_ci95": [
+      0.5182785297473251,
+      0.6095194024881141
+    ],
+    "mean_hits": 9.362222222222222,
+    "mean_seconds": 13.966462968888889,
+    "move_rate": 0.5240266108298656,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/19/fast_reaction": {
+    "points": 450,
+    "wins": 101,
+    "losses": 4,
+    "draws": 345,
+    "win_rate": 0.22444444444444445,
+    "win_ci95": [
+      0.18832144852149202,
+      0.2652322205407671
+    ],
+    "mean_hits": 12.886666666666667,
+    "mean_seconds": 19.298203706666666,
+    "move_rate": 0.5421502256608639,
+    "matches": 50,
+    "match_wins": 46,
+    "match_losses": 0,
+    "match_draws": 4
+  },
+  "q/7/standard": {
+    "points": 450,
+    "wins": 259,
+    "losses": 11,
+    "draws": 180,
+    "win_rate": 0.5755555555555556,
+    "win_ci95": [
+      0.529438903741985,
+      0.6203931547409441
+    ],
+    "mean_hits": 8.424444444444445,
+    "mean_seconds": 14.2948889,
+    "move_rate": 0.6567036632294219,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/7/fast": {
+    "points": 450,
+    "wins": 383,
+    "losses": 20,
+    "draws": 47,
+    "win_rate": 0.8511111111111112,
+    "win_ci95": [
+      0.8152539528345347,
+      0.8810244365861352
+    ],
+    "mean_hits": 7.5311111111111115,
+    "mean_seconds": 11.009611111111111,
+    "move_rate": 0.6883514917698931,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/7/simple_physics": {
+    "points": 450,
+    "wins": 242,
+    "losses": 24,
+    "draws": 184,
+    "win_rate": 0.5377777777777778,
+    "win_ci95": [
+      0.49158752276888085,
+      0.5833285064725837
+    ],
+    "mean_hits": 9.017777777777777,
+    "mean_seconds": 13.523648157777778,
+    "move_rate": 0.6381652059189025,
+    "matches": 50,
+    "match_wins": 49,
+    "match_losses": 0,
+    "match_draws": 1
+  },
+  "q/7/fast_reaction": {
+    "points": 450,
+    "wins": 17,
+    "losses": 20,
+    "draws": 413,
+    "win_rate": 0.03777777777777778,
+    "win_ci95": [
+      0.02371824983232919,
+      0.05966209827210549
+    ],
+    "mean_hits": 13.80888888888889,
+    "mean_seconds": 19.297500004444444,
+    "move_rate": 0.6707263710618436,
+    "matches": 50,
+    "match_wins": 11,
+    "match_losses": 13,
+    "match_draws": 26
+  },
+  "q/41/standard": {
+    "points": 450,
+    "wins": 301,
+    "losses": 0,
+    "draws": 149,
+    "win_rate": 0.6688888888888889,
+    "win_ci95": [
+      0.6241385603571159,
+      0.7107801586047253
+    ],
+    "mean_hits": 8.2,
+    "mean_seconds": 14.620851848888888,
+    "move_rate": 0.6318182508620123,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/41/fast": {
+    "points": 450,
+    "wins": 408,
+    "losses": 3,
+    "draws": 39,
+    "win_rate": 0.9066666666666666,
+    "win_ci95": [
+      0.8762408502356884,
+      0.930208170422429
+    ],
+    "mean_hits": 7.571111111111111,
+    "mean_seconds": 11.426592584444444,
+    "move_rate": 0.6591134280996017,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/41/simple_physics": {
+    "points": 450,
+    "wins": 256,
+    "losses": 0,
+    "draws": 194,
+    "win_rate": 0.5688888888888889,
+    "win_ci95": [
+      0.5227398964667492,
+      0.613871686267686
+    ],
+    "mean_hits": 9.44,
+    "mean_seconds": 14.064425931111112,
+    "move_rate": 0.6150764614534256,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q/41/fast_reaction": {
+    "points": 450,
+    "wins": 132,
+    "losses": 0,
+    "draws": 318,
+    "win_rate": 0.29333333333333333,
+    "win_ci95": [
+      0.25315865570486035,
+      0.337006596091834
+    ],
+    "mean_hits": 12.857777777777779,
+    "mean_seconds": 19.255537042222223,
+    "move_rate": 0.6271058016277173,
+    "matches": 50,
+    "match_wins": 47,
+    "match_losses": 0,
+    "match_draws": 3
+  },
+  "q_no_shaping/19/standard": {
+    "points": 450,
+    "wins": 283,
+    "losses": 11,
+    "draws": 156,
+    "win_rate": 0.6288888888888889,
+    "win_ci95": [
+      0.5833383133518592,
+      0.6722575511190197
+    ],
+    "mean_hits": 7.871111111111111,
+    "mean_seconds": 14.174555577777777,
+    "move_rate": 0.5339287579651102,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q_no_shaping/7/standard": {
+    "points": 450,
+    "wins": 287,
+    "losses": 0,
+    "draws": 163,
+    "win_rate": 0.6377777777777778,
+    "win_ci95": [
+      0.5923762578786769,
+      0.6808469075901935
+    ],
+    "mean_hits": 8.22,
+    "mean_seconds": 14.882759253333333,
+    "move_rate": 0.5331084812034563,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "q_no_shaping/41/standard": {
+    "points": 450,
+    "wins": 361,
+    "losses": 49,
+    "draws": 40,
+    "win_rate": 0.8022222222222222,
+    "win_ci95": [
+      0.7629284753764094,
+      0.8363997585553062
+    ],
+    "mean_hits": 5.3,
+    "mean_seconds": 12.50161112888889,
+    "move_rate": 0.6141446550560601,
+    "matches": 50,
+    "match_wins": 49,
+    "match_losses": 0,
+    "match_draws": 1
+  },
+  "grid100/7/standard": {
+    "points": 450,
+    "wins": 69,
+    "losses": 380,
+    "draws": 1,
+    "win_rate": 0.15333333333333332,
+    "win_ci95": [
+      0.1229890070027184,
+      0.1895462540756076
+    ],
+    "mean_hits": 1.931111111111111,
+    "mean_seconds": 5.295203684444444,
+    "move_rate": 0.6047173761339847,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "grid50/7/standard": {
+    "points": 450,
+    "wins": 147,
+    "losses": 296,
+    "draws": 7,
+    "win_rate": 0.32666666666666666,
+    "win_ci95": [
+      0.28496060039129134,
+      0.3713070301478717
+    ],
+    "mean_hits": 4.073333333333333,
+    "mean_seconds": 8.98881479111111,
+    "move_rate": 0.5960479643148131,
+    "matches": 50,
+    "match_wins": 6,
+    "match_losses": 44,
+    "match_draws": 0
+  },
+  "alpha035/7/standard": {
+    "points": 450,
+    "wins": 253,
+    "losses": 10,
+    "draws": 187,
+    "win_rate": 0.5622222222222222,
+    "win_ci95": [
+      0.5160492327542305,
+      0.6073418742317109
+    ],
+    "mean_hits": 8.504444444444445,
+    "mean_seconds": 14.7405,
+    "move_rate": 0.6009091365713999,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "no_movement_cost/7/standard": {
+    "points": 450,
+    "wins": 263,
+    "losses": 6,
+    "draws": 181,
+    "win_rate": 0.5844444444444444,
+    "win_ci95": [
+      0.5383839776730298,
+      0.6290753818078908
+    ],
+    "mean_hits": 8.428888888888888,
+    "mean_seconds": 14.239814817777777,
+    "move_rate": 0.6228494777395925,
+    "matches": 50,
+    "match_wins": 50,
+    "match_losses": 0,
+    "match_draws": 0
+  },
+  "random/0/standard": {
+    "points": 450,
+    "wins": 43,
+    "losses": 407,
+    "draws": 0,
+    "win_rate": 0.09555555555555556,
+    "win_ci95": [
+      0.07171637401617625,
+      0.1262414305752041
+    ],
+    "mean_hits": 0.92,
+    "mean_seconds": 3.261666653333333,
+    "move_rate": 0.6698490984366869,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "random/0/fast": {
+    "points": 450,
+    "wins": 48,
+    "losses": 402,
+    "draws": 0,
+    "win_rate": 0.10666666666666667,
+    "win_ci95": [
+      0.08140156439687674,
+      0.13859036644199316
+    ],
+    "mean_hits": 0.8511111111111112,
+    "mean_seconds": 2.6477592844444446,
+    "move_rate": 0.6698044895003621,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "random/0/simple_physics": {
+    "points": 450,
+    "wins": 37,
+    "losses": 413,
+    "draws": 0,
+    "win_rate": 0.08222222222222222,
+    "win_ci95": [
+      0.060239083449957015,
+      0.11127776964443586
+    ],
+    "mean_hits": 0.9111111111111111,
+    "mean_seconds": 2.7902962666666666,
+    "move_rate": 0.6687721338337121,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "random/0/fast_reaction": {
+    "points": 450,
+    "wins": 1,
+    "losses": 449,
+    "draws": 0,
+    "win_rate": 0.0022222222222222222,
+    "win_ci95": [
+      0.00039238455363755677,
+      0.012478759558830555
+    ],
+    "mean_hits": 1.0355555555555556,
+    "mean_seconds": 3.1590740844444443,
+    "move_rate": 0.6687994769166102,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "untrained/0/standard": {
+    "points": 450,
+    "wins": 31,
+    "losses": 419,
+    "draws": 0,
+    "win_rate": 0.06888888888888889,
+    "win_ci95": [
+      0.04895312020547742,
+      0.09612278139192798
+    ],
+    "mean_hits": 0.9066666666666666,
+    "mean_seconds": 3.2739814755555554,
+    "move_rate": 0.0,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "untrained/0/fast": {
+    "points": 450,
+    "wins": 54,
+    "losses": 396,
+    "draws": 0,
+    "win_rate": 0.12,
+    "win_ci95": [
+      0.0931468956822317,
+      0.15328598665362564
+    ],
+    "mean_hits": 0.9177777777777778,
+    "mean_seconds": 2.72483334,
+    "move_rate": 0.0,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "untrained/0/simple_physics": {
+    "points": 450,
+    "wins": 37,
+    "losses": 409,
+    "draws": 4,
+    "win_rate": 0.08222222222222222,
+    "win_ci95": [
+      0.060239083449957015,
+      0.11127776964443586
+    ],
+    "mean_hits": 1.0244444444444445,
+    "mean_seconds": 2.8968333155555555,
+    "move_rate": 0.0,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "untrained/0/fast_reaction": {
+    "points": 450,
+    "wins": 0,
+    "losses": 450,
+    "draws": 0,
+    "win_rate": 0.0,
+    "win_ci95": [
+      0.0,
+      0.008464318862970202
+    ],
+    "mean_hits": 1.011111111111111,
+    "mean_seconds": 3.1306111133333334,
+    "move_rate": 0.0,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  },
+  "tracking/0/standard": {
+    "points": 450,
+    "wins": 167,
+    "losses": 277,
+    "draws": 6,
+    "win_rate": 0.3711111111111111,
+    "win_ci95": [
+      0.3277424488809803,
+      0.4166616866481409
+    ],
+    "mean_hits": 4.02,
+    "mean_seconds": 9.098629624444444,
+    "move_rate": 0.7811371987902832,
+    "matches": 50,
+    "match_wins": 11,
+    "match_losses": 39,
+    "match_draws": 0
+  },
+  "tracking/0/fast": {
+    "points": 450,
+    "wins": 152,
+    "losses": 298,
+    "draws": 0,
+    "win_rate": 0.3377777777777778,
+    "win_ci95": [
+      0.29561678040273975,
+      0.38268497638391286
+    ],
+    "mean_hits": 2.9266666666666667,
+    "mean_seconds": 6.037185184444445,
+    "move_rate": 0.8143848951254454,
+    "matches": 50,
+    "match_wins": 8,
+    "match_losses": 42,
+    "match_draws": 0
+  },
+  "tracking/0/simple_physics": {
+    "points": 450,
+    "wins": 182,
+    "losses": 167,
+    "draws": 101,
+    "win_rate": 0.40444444444444444,
+    "win_ci95": [
+      0.36009301635200525,
+      0.45041349791958457
+    ],
+    "mean_hits": 6.668888888888889,
+    "mean_seconds": 10.802166664444444,
+    "move_rate": 0.686032570344133,
+    "matches": 50,
+    "match_wins": 22,
+    "match_losses": 22,
+    "match_draws": 6
+  },
+  "tracking/0/fast_reaction": {
+    "points": 450,
+    "wins": 59,
+    "losses": 370,
+    "draws": 21,
+    "win_rate": 0.13111111111111112,
+    "win_ci95": [
+      0.10302432449045654,
+      0.1654426840928904
+    ],
+    "mean_hits": 6.2844444444444445,
+    "mean_seconds": 11.886240742222222,
+    "move_rate": 0.7612688332710746,
+    "matches": 50,
+    "match_wins": 0,
+    "match_losses": 50,
+    "match_draws": 0
+  }
+}
