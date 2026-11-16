@@ -1,0 +1,18 @@
+model: models/best.npz
+baseline: models/baseline.npz
+demo: true
+seed: 7
+points: 5000
+test_seed: 11000000
+matches: 100
+match_seed: 12000000
+training:
+  episodes: 2000000
+  checkpoint: 100000
+  cell: 25
+  alpha: 0.15
+  gamma: 0.995
+  epsilon: [0.7, 0.02]
+  epsilon_decay: 100000
+  validation_points: 400
+  validation_seed: 8000000

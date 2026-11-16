@@ -94,7 +94,7 @@ class Pong:
 
     def observe(self):
         b, p = self.ball, self.right
-        return b.x, b.y, b.vx, b.vy, p.y, p.vy
+        return b.x, b.y, b.vx, b.vy, p.y, p.vy, b.spin
 
     def _paddle(self, paddle, action):
         c = self.cfg
@@ -120,7 +120,6 @@ class Pong:
             b.vx = direction * math.sqrt(speed * speed - vy * vy)
             b.spin = clip(c.spin_transfer * paddle.vy / c.paddle_speed + 2 * offset, -7, 7)
         else:
-
             b.vx = direction * abs(b.vx) * c.hit_acceleration
             factor = min(1.0, c.max_ball_speed / math.hypot(b.vx, b.vy))
             b.vx *= factor
@@ -173,7 +172,6 @@ class Pong:
                 impact_y = old_y + fraction * (b.y - old_y)
                 paddle_y = old_p + fraction * (paddle.y - old_p)
                 if abs(impact_y - paddle_y) <= c.paddle_height / 2 + c.ball_radius:
-
                     b.x = face + direction * abs(b.x - face)
                     self._bounce(paddle, impact_y, direction)
             self.elapsed += c.dt

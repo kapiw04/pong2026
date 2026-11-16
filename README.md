@@ -1,74 +1,100 @@
-# Projekt 1. Pong - przeciwnik uczący się grać
+# Pong
 
-Zespół 1, poniedziałek 8:00-10:15. Przedmiot: Sztuczna inteligencja w grach
-i rozszerzonej rzeczywistości.
-
-Gra Pong z przeciwnikiem uczącym się metodą tablicowego Q-learningu.
-Porównujemy wpływ rozmiaru siatki i współczynnika uczenia na wynik gry.
+Projekt 1, Sztuczna inteligencja w grach i rozszerzonej rzeczywistości.
+Zespół 1, poniedziałek 8:00–10:15.
 
 | Osoba | Zakres |
 | --- | --- |
-| Artur Zamorowski | Budowa i trenowanie modelu |
-| Kacper Wojtowicz | Gra, interfejs i prezentacja |
-| Rafał Wybraniec | Sprawozdanie, dokumentacja i dobór parametrów |
+| Artur Zamorowski | Model bazowy i trening |
+| Kacper Wojtowicz | Usprawnienia modelu względem wariantu bazowego, interfejs i prezentacja |
+| Rafał Wybraniec | Silnik gry, sprawozdanie i dobór parametrów |
 
 ## Uruchomienie
 
-Python 3.11 lub nowszy. Biblioteki: NumPy 2.3.5, Pygame-ce 2.5.8, PyYAML 6.0.3.
+Wymagany jest Python 3.11 lub nowszy. Gotowe modele są dołączone.
+Proszę rozpakować archiwum i otworzyć terminal w katalogu projektu.
+Jeśli projekt został pobrany z GitHuba, proszę otworzyć katalog repozytorium.
+
+Na macOS i Linux proszę wykonać:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r uruchomienie/wymagania.txt
-python kod/main.py play
+python -m pip install -r requirements.txt
+python src/main.py play
 ```
 
-Na Windows użyj `py -3 -m venv .venv`, a następnie interpretera
-`.venv\Scripts\python.exe` w poleceniach instalacji i uruchomienia.
+Na Windows proszę wykonać:
 
-Enter rozpoczyna mecz do 7 punktów. W/S lub strzałki sterują lewą paletką,
-Spacja włącza pauzę, D przełącza pokaz, R rozpoczyna nowy mecz,
-H pokazuje sterowanie, Esc wraca do menu. Wymiana trwa do zdobycia punktu.
+```powershell
+py -3 -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe src\main.py play
+```
 
-## Trzy tryby
+Domyślne ustawienie `demo: true` w `config.yaml` uruchamia pokaz
+Trackera przeciw agentowi. Aby zagrać samodzielnie, proszę nacisnąć
+Esc, a następnie Enter. Mecz trwa do 7 punktów.
+
+- Proszę używać W/S lub strzałek do poruszania lewą paletką.
+- Proszę nacisnąć Spację, aby zatrzymać lub wznowić grę.
+- Proszę nacisnąć D, aby rozpocząć nowy mecz i przełączyć tryb pokazu.
+- Proszę nacisnąć R, aby rozpocząć nowy mecz w bieżącym trybie.
+- Proszę nacisnąć H, aby wyświetlić lub ukryć pomoc.
+- Proszę nacisnąć Esc, aby wrócić do menu. Aby zamknąć grę z menu,
+  proszę nacisnąć Esc ponownie.
+
+Aby uruchomić pozostałe tryby, proszę wykonać odpowiednie polecenie
+w aktywnym środowisku wirtualnym:
 
 ```bash
-python kod/main.py play
-python kod/main.py train
-python kod/main.py evaluate
+python src/main.py train
+python src/main.py evaluate
+python src/main.py matches
 ```
 
-Parametry są w `konfiguracja.yaml`. Pole `model` wybiera model do gry,
-`demo: true` włącza pokaz reguła kontra agent. `train` uczy wszystkie modele
-z listy `models` i zapisuje ich ocenę. `evaluate` ocenia zapisane modele.
-Ścieżki odnoszą się do katalogu projektu.
+`evaluate` ocenia wybrany model i poprzedni model na wspólnych serwisach.
+`matches` sprawdza pełne mecze do 7 punktów, bez okna i limitu 20 s na wymianę.
+`train` rozpoczyna nowy trening pojedynczego ustawienia z sekcji `training`.
+Najlepsza tablica zastępuje model gry, jeśli w ocenie końcowej wygrywa
+częściej, niż przegrywa.
+Na Windows proszę zastąpić `python` przez `.venv\Scripts\python.exe`.
+Aby zmienić parametry, proszę edytować `config.yaml`.
+Ścieżki w konfiguracji odnoszą się do katalogu projektu.
 
-Modele porównują siatki 50 i 100 px oraz współczynniki uczenia 0,12 i 0,35.
-Stan zawiera pozycję piłki i paletki, kierunek poziomy oraz kategorie prędkości
-pionowej piłki i paletki. Nagroda wynosi +1 za punkt, -1 za stratę i +0,2 za odbicie.
-Trening i ocena mają limit 20 s na punkt. Paletki obu stron podejmują decyzję co 1/30 s.
+## Agent i trening
+
+Tablicowy Q-learning wybiera ruch w górę, postój lub ruch w dół.
+Stan zawiera pozycję i prędkość piłki, pozycję i prędkość paletki oraz spin.
+Koduje też bieżącą różnicę wysokości piłki i paletki. Nie przewiduje miejsca
+odbicia. Sytuacje odbite względem poziomej osi boiska współdzielą wiersz Q.
+
+Trening zaczyna od zerowej tablicy. Nagrody: +1 za punkt, -1 za stratę,
++0,2 za odbicie. Co 100 000 epizodów model jest oceniany na 400 serwisach
+walidacyjnych. Najlepszy checkpoint przechodzi końcową ocenę; zastępuje
+model gry, jeśli wygrywa częściej od Trackera. Trening i gra używają
+jednej implementacji fizyki w Pythonie.
+
+Wybrany model ma komórkę 25 px, alfę 0,15 i gammę 0,995. Pochodzi
+z checkpointu 1 800 000 epizodów treningu.
+Na wspólnych 5000 serwisach o ziarnach 11 000 000–11 004 999:
+
+| Model | Wygrane | Porażki | Limit 20 s |
+| --- | ---: | ---: | ---: |
+| Usprawniony | 50,24% | 24,56% | 25,20% |
+| Bazowy W32 | 27,86% | 48,74% | 23,40% |
+
+W 100 pełnych meczach na ziarnach 12 000 000–12 000 099 agent wygrał
+89 razy, a Tracker 11. Łączny wynik punktów: 673:352.
 
 ## Pliki
 
-- `kod/`: uruchamianie, fizyka, agent i interfejs.
-- `modele/`: cztery gotowe tablice Q.
-- `wyniki/uczenie.csv`: ocena modeli w trakcie treningu.
-- `wyniki/ocena.csv`: wyniki końcowych punktów przeciw regule śledzącej piłkę.
-- `wyniki/*.png`: wykresy i zrzut użyte w sprawozdaniu.
-- `dokumentacja/`: źródła LaTeX sprawozdania i prezentacji.
-- `sprawozdanie.pdf`, `prezentacja.pdf`, `uruchomienie/`: materiały do oddania.
+- `src/main.py`: uruchamianie, trening i ocena.
+- `src/pong/`: agent, fizyka i interfejs.
+- `models/`: tablice Q porównywanych modeli.
+- `results/`: krzywa uczenia, końcowe wyniki i pełne mecze.
+- `docs/report.tex`, `report.pdf`: sprawozdanie z eksperymentu bazowego W32 i usprawnień modelu.
+- `docs/data/experiments.zip`: dane obu eksperymentów i metadane modelu użyte w sprawozdaniu.
+- `docs/instructions.pdf`, `docs/instructions.tex`: instrukcja uruchomienia i jej źródło.
 
-Pygame-ce obsługuje okno i klawiaturę. Własna fizyka obejmuje przyspieszanie
-paletek, zmianę kąta odbicia, przekazywanie ruchu paletki i rotację piłki.
-
-Oba dokumenty można skompilować z katalogu `dokumentacja/`:
-
-```bash
-latexmk -pdf -outdir=../tmp/latex sprawozdanie.tex
-latexmk -pdf -outdir=../tmp/latex prezentacja.tex
-```
-
-Kompilacja wymaga TeX Live lub MiKTeX z `latexmk` i `pdflatex`.
-Pliki PDF powstają w `tmp/latex/`.
-Archiwum do oddania: `dist/projekt_1_pon_8.zip`.
-Repozytorium: https://github.com/kapiw04/pong2026.
+Repozytorium: [pong2026](https://github.com/kapiw04/pong2026).

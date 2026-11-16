@@ -128,7 +128,8 @@ class Game:
         s = self.canvas
         s.fill(BG)
         self.text("Reguła" if self.demo else "Gracz", OX, 45, 22, CORAL)
-        self.text(f"Q / {self.agent.cell} px", W - OX - 160, 45, 22, TEAL)
+        model_label = 'Q / względny' if self.agent.representation == 'relative-v1' else f'Q / {self.agent.cell} px'
+        self.text(model_label, W - OX - 160, 45, 22, TEAL)
         self.text(f"{self.score[0]}    :    {self.score[1]}", W / 2, 27, 40, center=True)
         pygame.draw.rect(s, FIELD, (OX, OY, 900, 500), border_radius=4)
         pygame.draw.rect(s, LINE, (OX, OY, 900, 500), 1, border_radius=4)

@@ -1,0 +1,82 @@
+% Kompilacja z katalogu projektu:
+% latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=tmp/instructions-update/build docs/instructions.tex
+% Następnie: cp tmp/instructions-update/build/instructions.pdf docs/instructions.pdf
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage{lmodern}
+\usepackage[margin=22mm]{geometry}
+\usepackage{array,booktabs,tabularx}
+\usepackage{titlesec}
+\usepackage[unicode,hidelinks]{hyperref}
+\hypersetup{pdftitle={Uruchomienie Ponga},
+  pdfauthor={Artur Zamorowski, Kacper Wojtowicz, Rafał Wybraniec},pdflang={pl-PL}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{1.5em}
+\titleformat{\section}{\large\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{12pt}{5pt}
+\pagestyle{empty}
+
+\begin{document}
+{\LARGE\bfseries Uruchomienie Ponga\par}
+
+Wymagany jest Python 3.11 lub nowszy. Gotowe modele są dołączone.
+Proszę rozpakować archiwum i otworzyć terminal w katalogu projektu,
+w którym znajdują się \texttt{requirements.txt} i \texttt{config.yaml}.
+Jeśli projekt został pobrany z GitHuba, proszę otworzyć katalog repozytorium.
+
+\section*{1. Instalacja i uruchomienie}
+Na macOS i Linux proszę wykonać:
+\begin{verbatim}
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python src/main.py play
+\end{verbatim}
+Na Windows proszę wykonać:
+\begin{verbatim}
+py -3 -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe src\main.py play
+\end{verbatim}
+
+\section*{2. Gra i sterowanie}
+Domyślnie startuje pokaz Trackera przeciw agentowi, zgodnie z ustawieniem
+\texttt{demo: true} w \texttt{config.yaml}. Aby zagrać samodzielnie,
+proszę nacisnąć Esc, a następnie Enter. Mecz trwa do 7 punktów.
+
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Klawisze & Czynność\\
+\midrule
+W/S lub strzałki & Proszę używać do poruszania lewą paletką.\\
+Spacja & Proszę nacisnąć, aby zatrzymać lub wznowić grę.\\
+D & Proszę nacisnąć, aby rozpocząć nowy mecz i przełączyć tryb pokazu.\\
+R & Proszę nacisnąć, aby rozpocząć nowy mecz w bieżącym trybie.\\
+H & Proszę nacisnąć, aby wyświetlić lub ukryć pomoc.\\
+Esc & Proszę nacisnąć, aby wrócić do menu. Aby zamknąć grę z menu,
+proszę nacisnąć Esc ponownie.\\
+\bottomrule
+\end{tabularx}
+
+\section*{3. Pozostałe tryby}
+W aktywnym środowisku wirtualnym proszę wykonać odpowiednie polecenie:
+\begin{verbatim}
+python src/main.py evaluate
+python src/main.py matches
+python src/main.py train
+\end{verbatim}
+\texttt{evaluate} ocenia model gry i baseline na tych samych serwisach.
+\texttt{matches} rozgrywa pełne mecze z Trackerem bez okna gry.
+\texttt{train} rozpoczyna nowy trening pojedynczego ustawienia
+z sekcji \texttt{training}. Najlepsza tablica zastępuje model gry,
+jeśli w ocenie końcowej wygrywa częściej, niż przegrywa.
+
+Na Windows proszę zastąpić \texttt{python} przez
+\texttt{.venv\textbackslash Scripts\textbackslash python.exe}.
+Aby zmienić parametry lub wybrany model, proszę edytować \texttt{config.yaml}.
+Ścieżki w konfiguracji odnoszą się do katalogu projektu.
+\end{document}
